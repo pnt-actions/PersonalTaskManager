@@ -1,5 +1,6 @@
 package com.example.personaltaskmanager.features.task_manager.screens;
 
+import android.content.res.ColorStateList;
 import android.graphics.Paint;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -70,33 +71,39 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
         Task task = taskList.get(position);
 
+        // Gán text
         holder.textTitle.setText(task.getTitle());
         holder.textDeadline.setText(task.getDescription());
 
+        // =============================
+        // 1) NGĂN TRIGGER LISTENER LẶP LẠI
+        // → Nếu không thì checkbox nhảy loạn khi scroll
+        // =============================
+        holder.checkboxTask.setOnCheckedChangeListener(null);
         holder.checkboxTask.setChecked(task.isCompleted());
 
-        // ⭐ UI cho task đã completed
-        if (task.isCompleted()) {
-            holder.textTitle.setPaintFlags(Paint.STRIKE_THRU_TEXT_FLAG);
-            holder.textTitle.setAlpha(0.5f);
-            holder.textDeadline.setAlpha(0.5f);
-        } else {
-            holder.textTitle.setPaintFlags(0);
-            holder.textTitle.setAlpha(1f);
-            holder.textDeadline.setAlpha(1f);
-        }
+        // =============================
+        // 2) ÁP DỤNG STYLE (strike-through + alpha)
+        // =============================
+        applyCompletedStyle(holder, task.isCompleted());
 
-        // CLICK ITEM
+        // =============================
+        // 3) CLICK ITEM → mở Task Detail
+        // =============================
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onTaskClick(task);
         });
 
-        // DELETE
+        // =============================
+        // 4) CLICK DELETE
+        // =============================
         holder.btnDelete.setOnClickListener(v -> {
             if (deleteListener != null) deleteListener.onTaskDelete(task);
         });
 
-        // ⭐ TOGGLE COMPLETED
+        // =============================
+        // 5) CHECKBOX TOGGLE
+        // =============================
         holder.checkboxTask.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (toggleListener != null) toggleListener.onTaskToggle(task, isChecked);
         });
@@ -105,6 +112,40 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     @Override
     public int getItemCount() {
         return taskList.size();
+    }
+
+    /**
+     * Áp dụng UI cho trạng thái completed:
+     * - Gạch ngang title
+     * - Giảm độ mờ text
+     * - Đổi màu checkbox (xanh dương → xanh lá)
+     */
+    private void applyCompletedStyle(TaskViewHolder holder, boolean completed) {
+        if (completed) {
+            // Gạch ngang + mờ đi
+            holder.textTitle.setPaintFlags(
+                    holder.textTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG
+            );
+            holder.textTitle.setAlpha(0.5f);
+            holder.textDeadline.setAlpha(0.5f);
+
+            // Checkbox tint xanh lá (task đã xong)
+            int doneColor = holder.itemView.getResources()
+                    .getColor(R.color.task_checkbox_done_tint);
+            holder.checkboxTask.setButtonTintList(ColorStateList.valueOf(doneColor));
+        } else {
+            // Bỏ gạch ngang + full opacity
+            holder.textTitle.setPaintFlags(
+                    holder.textTitle.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG)
+            );
+            holder.textTitle.setAlpha(1f);
+            holder.textDeadline.setAlpha(1f);
+
+            // Checkbox tint xanh dương (task chưa xong)
+            int normalColor = holder.itemView.getResources()
+                    .getColor(R.color.task_checkbox_tint);
+            holder.checkboxTask.setButtonTintList(ColorStateList.valueOf(normalColor));
+        }
     }
 
     public static class TaskViewHolder extends RecyclerView.ViewHolder {

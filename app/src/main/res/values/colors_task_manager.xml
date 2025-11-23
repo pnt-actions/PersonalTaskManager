@@ -15,7 +15,10 @@
     <!-- Nút delete -->
     <color name="task_delete_tint">@color/colorPrimary</color>
 
-    <!-- Checkbox -->
+    <!-- Checkbox khi chưa hoàn thành -->
     <color name="task_checkbox_tint">@color/colorPrimary</color>
+
+    <!-- Checkbox khi đã hoàn thành -->
+    <color name="task_checkbox_done_tint">#1AEFB3</color>  <!-- xanh lá -->
 
 </resources>

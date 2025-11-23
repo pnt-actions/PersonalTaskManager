@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- CHECKED -->
+    <item android:state_checked="true"
+        android:drawable="@drawable/feature_task_manager_ic_checkbox_checked" />
+
+    <!-- UNCHECKED -->
+    <item android:drawable="@drawable/feature_task_manager_ic_checkbox_unchecked" />
+
+</selector>

@@ -89,7 +89,7 @@ public class TaskManagerMainActivity extends AppCompatActivity {
                 },
 
                 // DELETE → Dialog confirm
-                task -> showDeleteConfirmDialog(task),
+                this::showDeleteConfirmDialog,
 
                 // ⭐ TOGGLE COMPLETED
                 (task, done) -> {
