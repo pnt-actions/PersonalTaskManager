@@ -9,7 +9,11 @@ import androidx.room.RoomDatabase;
 import com.example.personaltaskmanager.features.task_manager.data.local.dao.TaskDao;
 import com.example.personaltaskmanager.features.task_manager.data.model.Task;
 
-@Database(entities = {Task.class}, version = 1, exportSchema = false)
+@Database(
+        entities = {Task.class},
+        version = 1,
+        exportSchema = false
+)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static volatile AppDatabase INSTANCE;
@@ -21,10 +25,13 @@ public abstract class AppDatabase extends RoomDatabase {
             synchronized (AppDatabase.class) {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(
-                            context.getApplicationContext(),
-                            AppDatabase.class,
-                            "task_manager_db"
-                    ).fallbackToDestructiveMigration().build();
+                                    context.getApplicationContext(),
+                                    AppDatabase.class,
+                                    "task_manager_db"
+                            )
+                            // Xoá DB khi đổi version (phục vụ dev)
+                            .fallbackToDestructiveMigration()
+                            .build();
                 }
             }
         }

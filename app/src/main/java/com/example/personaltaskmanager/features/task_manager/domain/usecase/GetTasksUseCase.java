@@ -1,5 +1,7 @@
 package com.example.personaltaskmanager.features.task_manager.domain.usecase;
 
+import androidx.lifecycle.LiveData;
+
 import com.example.personaltaskmanager.features.task_manager.data.model.Task;
 import com.example.personaltaskmanager.features.task_manager.data.repository.TaskRepository;
 
@@ -13,7 +15,8 @@ public class GetTasksUseCase {
         this.repository = repository;
     }
 
-    public List<Task> execute() {
+    // Trả về LiveData để UI tự động update
+    public LiveData<List<Task>> execute() {
         return repository.getAllTasks();
     }
 }

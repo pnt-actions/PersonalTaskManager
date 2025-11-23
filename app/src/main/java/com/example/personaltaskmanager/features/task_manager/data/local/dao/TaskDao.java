@@ -1,5 +1,6 @@
 package com.example.personaltaskmanager.features.task_manager.data.local.dao;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -13,8 +14,9 @@ import java.util.List;
 @Dao
 public interface TaskDao {
 
+    // Lấy danh sách Task dạng LiveData để UI tự cập nhật
     @Query("SELECT * FROM tasks ORDER BY id DESC")
-    List<Task> getAllTasks();
+    LiveData<List<Task>> getAllTasks();
 
     @Insert
     long insertTask(Task task);

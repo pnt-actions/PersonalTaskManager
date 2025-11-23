@@ -4,6 +4,7 @@ import android.app.Application;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.personaltaskmanager.features.task_manager.data.model.Task;
@@ -12,15 +13,20 @@ import com.example.personaltaskmanager.features.task_manager.domain.usecase.AddT
 import com.example.personaltaskmanager.features.task_manager.domain.usecase.GetTasksUseCase;
 
 import java.util.List;
-import java.util.concurrent.Executors;
 
+/**
+ * TaskViewModel quản lý dữ liệu Task theo mô hình MVVM.
+ * - Lấy dữ liệu từ DB qua Repository + UseCase
+ * - Expose LiveData để Activity observe (UI tự cập nhật)
+ */
 public class TaskViewModel extends AndroidViewModel {
 
     private final TaskRepository repository;
     private final GetTasksUseCase getTasksUseCase;
     private final AddTaskUseCase addTaskUseCase;
 
-    public MutableLiveData<List<Task>> tasksLiveData = new MutableLiveData<>();
+    // LiveData UI quan sát
+    private LiveData<List<Task>> allTasksLiveData;
 
     public TaskViewModel(@NonNull Application application) {
         super(application);
@@ -29,21 +35,23 @@ public class TaskViewModel extends AndroidViewModel {
         getTasksUseCase = new GetTasksUseCase(repository);
         addTaskUseCase = new AddTaskUseCase(repository);
 
-        loadTasks();
+        // Nhận LiveData từ UseCase
+        allTasksLiveData = getTasksUseCase.execute();
     }
 
-    public void loadTasks() {
-        Executors.newSingleThreadExecutor().execute(() -> {
-            List<Task> tasks = getTasksUseCase.execute();
-            tasksLiveData.postValue(tasks);
-        });
+    /**
+     * Getter cho Activity observe
+     */
+    public LiveData<List<Task>> getAllTasks() {
+        return allTasksLiveData;
     }
 
+    /**
+     * Thêm task mới vào DB
+     */
     public void addTask(String title, String description) {
-        Executors.newSingleThreadExecutor().execute(() -> {
-            Task task = new Task(title, description, System.currentTimeMillis());
-            addTaskUseCase.execute(task);
-            loadTasks(); // refresh list
-        });
+        Task task = new Task(title, description, System.currentTimeMillis());
+        addTaskUseCase.execute(task);
+        // KHÔNG CẦN load lại danh sách — LiveData tự update
     }
 }
