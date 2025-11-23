@@ -30,18 +30,21 @@
         app:layout_constraintStart_toStartOf="parent"/>
 
     <!-- RECYCLER VIEW -->
+
+    <!-- FAB -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_list_tasks"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/tv_title"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:listitem="@android:layout/simple_list_item_1"/>
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_title"
+        app:layout_constraintVertical_bias="0.0"
+        tools:listitem="@android:layout/simple_list_item_1" />
 
-    <!-- FAB -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_task"
         android:layout_width="wrap_content"
@@ -49,7 +52,8 @@
         android:layout_margin="16dp"
         android:contentDescription="Thêm task"
         app:srcCompat="@android:drawable/ic_input_add"
-        app:tint="#FFFFFF"
+        app:tint="@android:color/white"
+        app:backgroundTint="@color/colorPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 

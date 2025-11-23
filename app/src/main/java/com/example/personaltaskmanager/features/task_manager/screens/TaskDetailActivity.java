@@ -3,6 +3,7 @@ package com.example.personaltaskmanager.features.task_manager.screens;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -19,6 +20,7 @@ public class TaskDetailActivity extends AppCompatActivity {
 
     private EditText edtTitle, edtDescription;
     private Button btnSave;
+    private ImageButton btnBack;   // Bổ sung
 
     private TaskViewModel viewModel;
 
@@ -35,6 +37,7 @@ public class TaskDetailActivity extends AppCompatActivity {
         edtTitle = findViewById(R.id.edt_task_title);
         edtDescription = findViewById(R.id.edt_task_description);
         btnSave = findViewById(R.id.btn_save_task);
+        btnBack = findViewById(R.id.btn_back);
 
         // KHỞI TẠO VIEWMODEL
         viewModel = new ViewModelProvider(this).get(TaskViewModel.class);
@@ -50,6 +53,9 @@ public class TaskDetailActivity extends AppCompatActivity {
                 btnSave.setText("Cập nhật công việc");
             }
         }
+
+        // Xử lý nút BACK
+        btnBack.setOnClickListener(v -> finish());
 
         // Nút LƯU
         btnSave.setOnClickListener(v -> {
