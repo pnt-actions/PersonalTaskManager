@@ -6,12 +6,15 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.example.personaltaskmanager.R;
+import com.example.personaltaskmanager.features.authentication.data.model.User;
+import com.example.personaltaskmanager.features.authentication.data.repository.AuthRepository;
 
 /**
  * RegisterActivity
@@ -20,14 +23,18 @@ import com.example.personaltaskmanager.R;
  */
 public class RegisterActivity extends AppCompatActivity {
 
-    private EditText etUser, etPass, etConfirm;
+    private EditText etUser, etEmail, etPass, etConfirm;
     private Button btnRegister;
     private TextView tvLogin;
+
+    private AuthRepository repo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.feature_auth_register);
+
+        repo = new AuthRepository(this);
 
         setupStatusBar();
         initViews();
@@ -49,6 +56,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void initViews() {
         etUser = findViewById(R.id.et_register_username);
+        etEmail = findViewById(R.id.et_register_email);
         etPass = findViewById(R.id.et_register_password);
         etConfirm = findViewById(R.id.et_register_confirm);
 
@@ -60,26 +68,37 @@ public class RegisterActivity extends AppCompatActivity {
 
         btnRegister.setOnClickListener(v -> {
 
-            String u = etUser.getText().toString().trim();
-            String p = etPass.getText().toString().trim();
-            String c = etConfirm.getText().toString().trim();
+            String username = etUser.getText().toString().trim();
+            String email = etEmail.getText().toString().trim();
+            String password = etPass.getText().toString().trim();
+            String confirm = etConfirm.getText().toString().trim();
 
-            if (u.isEmpty()) {
+            if (username.isEmpty()) {
                 etUser.setError("Không được để trống");
                 return;
             }
-            if (p.isEmpty()) {
+            if (email.isEmpty()) {
+                etEmail.setError("Không được để trống");
+                return;
+            }
+            if (password.isEmpty()) {
                 etPass.setError("Không được để trống");
                 return;
             }
-            if (!p.equals(c)) {
+            if (!password.equals(confirm)) {
                 etConfirm.setError("Mật khẩu xác nhận không trùng!");
                 return;
             }
 
-            // TODO: Lưu DB nếu cần
+            boolean ok = repo.register(new User(username, email, password));
 
-            finish(); // Trở về Login
+            if (!ok) {
+                Toast.makeText(this, "Tên tài khoản đã tồn tại!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Toast.makeText(this, "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
+            finish();
         });
 
         tvLogin.setOnClickListener(v -> finish());

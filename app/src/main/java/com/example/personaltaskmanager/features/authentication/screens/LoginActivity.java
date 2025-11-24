@@ -3,25 +3,25 @@ package com.example.personaltaskmanager.features.authentication.screens;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.view.Window;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.example.personaltaskmanager.R;
+import com.example.personaltaskmanager.features.authentication.data.repository.AuthRepository;
+import com.example.personaltaskmanager.features.task_manager.screens.TaskManagerMainActivity;
 
 /**
  * LoginActivity
  * ----------------
  * Màn hình đăng nhập cục bộ (Offline only).
- * - Nhập username / password
- * - Chuyển sang RegisterActivity nếu chưa có tài khoản
- * - Chuyển sang TaskManagerMainActivity sau khi login thành công
  */
 public class LoginActivity extends AppCompatActivity {
 
@@ -30,10 +30,14 @@ public class LoginActivity extends AppCompatActivity {
     private TextView tvRegister;
     private Switch switchTheme;
 
+    private AuthRepository repo;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.feature_auth_login);
+
+        repo = new AuthRepository(this);
 
         setupStatusBar();
         initViews();
@@ -64,28 +68,34 @@ public class LoginActivity extends AppCompatActivity {
 
     private void setupActions() {
 
-        // Đăng nhập (mock)
         btnLogin.setOnClickListener(v -> {
 
-            String user = etUsername.getText().toString().trim();
-            String pass = etPassword.getText().toString().trim();
+            String username = etUsername.getText().toString().trim();
+            String password = etPassword.getText().toString().trim();
 
-            if (user.isEmpty()) {
+            if (username.isEmpty()) {
                 etUsername.setError("Không được bỏ trống");
                 return;
             }
-            if (pass.isEmpty()) {
+            if (password.isEmpty()) {
                 etPassword.setError("Không được bỏ trống");
                 return;
             }
 
-            // TODO: validate thật nếu có DB
-            startActivity(new Intent(this,
-                    com.example.personaltaskmanager.features.task_manager.screens.TaskManagerMainActivity.class));
+            boolean ok = repo.login(username, password);
+
+            if (!ok) {
+                Toast.makeText(this, "Sai tài khoản hoặc mật khẩu!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
+
+            Intent i = new Intent(this, TaskManagerMainActivity.class);
+            startActivity(i);
             finish();
         });
 
-        // Chuyển sang đăng ký
         tvRegister.setOnClickListener(v -> {
             startActivity(new Intent(this, RegisterActivity.class));
         });
