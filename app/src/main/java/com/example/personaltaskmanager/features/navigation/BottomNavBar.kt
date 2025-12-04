@@ -30,17 +30,21 @@ fun BottomNavBar(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .padding(vertical = 14.dp),
+            .padding(vertical = 12.dp),   // cân bằng cân đối hơn
         horizontalArrangement = Arrangement.SpaceAround
     ) {
         NavItem.values().forEach { item ->
+
+            val tintColor =
+                if (item == current) MaterialTheme.colorScheme.primary
+                else Color.Gray
+
             IconButton(onClick = { onSelect(item) }) {
                 Icon(
-                    painter = painterResource(item.icon),
+                    painter = painterResource(id = item.icon),
                     contentDescription = item.name,
-                    tint = if (item == current)
-                        MaterialTheme.colorScheme.primary
-                    else Color.Gray
+                    tint = tintColor,
+                    modifier = Modifier.size(26.dp)  // icon nhìn vừa mắt hơn
                 )
             }
         }

@@ -1,17 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="48dp"
-    android:layout_height="48dp"
-    android:gravity="center">
+    android:layout_width="wrap_content"
+    android:layout_height="56dp"
+    android:gravity="center"
+    android:padding="4dp">
 
+    <!-- Nền hình tròn -->
+    <View
+        android:id="@+id/bg_circle"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/bg_calendar_day_default"
+        android:visibility="visible" />
+
+    <!-- Text ngày -->
     <TextView
         android:id="@+id/tv_calendar_day"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:gravity="center"
         android:text="1"
-        android:textSize="16sp"
-        android:background="@null"
+        android:textSize="15sp"
+        android:textStyle="bold"
         android:textColor="@color/calendar_text_default" />
 
 </FrameLayout>

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    tools:context=".features.calendar_events.screens.CalendarMonthActivity">
+    tools:context=".features.calendar_events.screens.CalendarFragment">
 
     <!-- Tiêu đề tháng + nút next/prev -->
     <LinearLayout
@@ -40,12 +40,44 @@
             android:tint="@color/calendar_primary" />
     </LinearLayout>
 
+    <!-- Header thứ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="12dp">
+
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:gravity="center" android:text="S"/>
+
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:gravity="center" android:text="M"/>
+
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:gravity="center" android:text="T"/>
+
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:gravity="center" android:text="W"/>
+
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:gravity="center" android:text="T"/>
+
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:gravity="center" android:text="F"/>
+
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:gravity="center" android:text="S"/>
+    </LinearLayout>
+
     <!-- Lưới ngày -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_calendar_days"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp" />
 
     <!-- Text hiển thị ngày đã chọn -->
     <TextView
@@ -55,6 +87,6 @@
         android:text="Công việc ngày: YYYY-MM-DD"
         android:textSize="16sp"
         android:textColor="@color/calendar_text_default"
-        android:layout_marginTop="24dp" />
+        android:layout_marginTop="16dp" />
 
 </LinearLayout>

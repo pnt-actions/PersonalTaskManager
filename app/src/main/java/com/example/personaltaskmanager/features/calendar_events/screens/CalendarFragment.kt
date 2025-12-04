@@ -4,10 +4,27 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
+import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.personaltaskmanager.R
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 
 class CalendarFragment : Fragment() {
+
+    private lateinit var tvMonthTitle: TextView
+    private lateinit var tvSelectedDate: TextView
+    private lateinit var rvCalendar: RecyclerView
+    private lateinit var btnPrev: ImageButton
+    private lateinit var btnNext: ImageButton
+
+    private var selectedDate: LocalDate = LocalDate.now()
+    private var currentMonth: YearMonth = YearMonth.now()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -16,4 +33,104 @@ class CalendarFragment : Fragment() {
     ): View {
         return inflater.inflate(R.layout.feature_calendar_month, container, false)
     }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Init views
+        tvMonthTitle = view.findViewById(R.id.tv_month_title)
+        tvSelectedDate = view.findViewById(R.id.tv_selected_date)
+        rvCalendar = view.findViewById(R.id.rv_calendar_days)
+        btnPrev = view.findViewById(R.id.btn_prev_month)
+        btnNext = view.findViewById(R.id.btn_next_month)
+
+        rvCalendar.layoutManager = GridLayoutManager(requireContext(), 7)
+
+        // Tint buttons
+        val primaryColor = ContextCompat.getColor(requireContext(), R.color.calendar_primary)
+        btnPrev.setColorFilter(primaryColor)
+        btnNext.setColorFilter(primaryColor)
+
+        loadMonth()
+
+        btnPrev.setOnClickListener {
+            currentMonth = currentMonth.minusMonths(1)
+            loadMonth()
+        }
+
+        btnNext.setOnClickListener {
+            currentMonth = currentMonth.plusMonths(1)
+            loadMonth()
+        }
+    }
+
+    private fun loadMonth() {
+        val formatter = DateTimeFormatter.ofPattern("MMMM yyyy")
+        tvMonthTitle.text = currentMonth.format(formatter)
+
+        val days = generateCalendarDays(currentMonth)
+
+        rvCalendar.adapter = CalendarDayAdapter(
+            days = days,
+            selectedDate = selectedDate,
+            onClick = { clickedDay ->
+                if (clickedDay.isCurrentMonth) {
+                    selectedDate = clickedDay.date
+                    tvSelectedDate.text = "Công việc ngày: ${selectedDate}"
+                    loadMonth()
+                }
+            }
+        )
+    }
+
+    private fun generateCalendarDays(month: YearMonth): List<CalendarDay> {
+        val days = mutableListOf<CalendarDay>()
+
+        val firstDay = month.atDay(1)
+        val totalDays = month.lengthOfMonth()
+
+        // Sunday = 0, Monday = 1...
+        val dayOfWeekIndex = firstDay.dayOfWeek.value % 7
+
+        // Add padding for previous month
+        val prevMonth = month.minusMonths(1)
+        val prevMonthDays = prevMonth.lengthOfMonth()
+        for (i in 1..dayOfWeekIndex) {
+            val dayNum = prevMonthDays - (dayOfWeekIndex - i)
+            days.add(
+                CalendarDay(
+                    day = dayNum,
+                    isCurrentMonth = false,
+                    date = prevMonth.atDay(dayNum)
+                )
+            )
+        }
+
+        // Current month days
+        for (i in 1..totalDays) {
+            days.add(
+                CalendarDay(
+                    day = i,
+                    isCurrentMonth = true,
+                    date = month.atDay(i)
+                )
+            )
+        }
+
+        // Next month to fill 42 cells (6 rows)
+        val nextMonth = month.plusMonths(1)
+        val remain = 42 - days.size
+        for (i in 1..remain) {
+            days.add(
+                CalendarDay(
+                    day = i,
+                    isCurrentMonth = false,
+                    date = nextMonth.atDay(i)
+                )
+            )
+        }
+
+        return days
+    }
+
 }
