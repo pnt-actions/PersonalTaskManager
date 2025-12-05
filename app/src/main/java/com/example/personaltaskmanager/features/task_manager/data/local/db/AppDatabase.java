@@ -11,7 +11,7 @@ import com.example.personaltaskmanager.features.task_manager.data.model.Task;
 
 @Database(
         entities = {Task.class},
-        version = 3,
+        version = 4,              // ⬅⬅⬅ TĂNG VERSION để Room build lại DB
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -29,8 +29,7 @@ public abstract class AppDatabase extends RoomDatabase {
                                     AppDatabase.class,
                                     "task_manager_db"
                             )
-                            // Xoá DB khi đổi version (phục vụ dev)
-                            .fallbackToDestructiveMigration()
+                            .fallbackToDestructiveMigration() // xoá DB khi thay đổi schema
                             .build();
                 }
             }
