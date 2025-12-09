@@ -2,13 +2,16 @@ package com.example.personaltaskmanager.features.task_manager.screens.workspace;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.view.View;
-
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -17,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.personaltaskmanager.R;
 import com.example.personaltaskmanager.features.task_manager.data.model.Task;
+import com.example.personaltaskmanager.features.task_manager.screens.TaskDetailActivity;
 import com.example.personaltaskmanager.features.task_manager.screens.workspace.blocks.NotionBlock;
 import com.example.personaltaskmanager.features.task_manager.screens.workspace.blocks.NotionBlockParser;
 import com.example.personaltaskmanager.features.task_manager.viewmodel.TaskViewModel;
@@ -43,6 +47,7 @@ public class TaskWorkspaceActivity extends AppCompatActivity {
     private Task task;
 
     private static final int REQ_PICK_FILE = 2001;
+    private static final int REQ_EDIT_TASK = 3001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,12 +80,17 @@ public class TaskWorkspaceActivity extends AppCompatActivity {
 
         tvTaskTitle = findViewById(R.id.tv_task_title);
         tvTaskDeadline = findViewById(R.id.tv_task_deadline);
+
+        // *** THÊM LẠI: Click để mở TaskDetailActivity ***
+        View topBar = findViewById(R.id.card_top_bar);
+        topBar.setOnClickListener(v -> openTaskDetail());
     }
 
     private void initRecycler() {
         rvWorkspace.setLayoutManager(new LinearLayoutManager(this));
         adapter = new NotionBlockAdapter(blocks);
 
+        // *** GIỮ LẠI LOGIC DẤU … ***
         adapter.setFileMenuListener((block, position, anchor) -> {
             showBottomSheet(block, position);
         });
@@ -168,6 +178,15 @@ public class TaskWorkspaceActivity extends AppCompatActivity {
             adapter.notifyItemInserted(blocks.size() - 1);
             rvWorkspace.scrollToPosition(blocks.size() - 1);
         }
+
+        // *** THÊM LẠI: Chỉnh sửa task xong cập nhật UI ***
+        if (req == REQ_EDIT_TASK && res == RESULT_OK) {
+
+            task = vm.getTaskById(task.getId());
+            applyTaskInfo();
+
+            showIOSPopup("Đã cập nhật công việc");
+        }
     }
 
     private String getFileName(Uri uri) {
@@ -182,7 +201,7 @@ public class TaskWorkspaceActivity extends AppCompatActivity {
         return name;
     }
 
-    // ================= BOTTOM SHEET MENU =================
+    // ================= BOTTOM SHEET MENU (DẤU …) =================
     private void showBottomSheet(NotionBlock block, int position) {
 
         BottomSheetDialog dialog = new BottomSheetDialog(this);
@@ -224,7 +243,7 @@ public class TaskWorkspaceActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    // ================= SAVE =================
+    // =================== SAVE ===================
     private void save() {
 
         String json = NotionBlockParser.toJson(blocks);
@@ -235,6 +254,63 @@ public class TaskWorkspaceActivity extends AppCompatActivity {
                 task.getTitle(),
                 task.getDescription(),
                 task.getDeadline()
+        );
+    }
+
+    // ================= MỞ MÀN HÌNH SỬA TASK =================
+    private void openTaskDetail() {
+        Intent i = new Intent(this, TaskDetailActivity.class);
+        i.putExtra("task_id", task.getId());
+        startActivityForResult(i, REQ_EDIT_TASK);
+    }
+
+    // ================= POPUP iOS =================
+    private void showIOSPopup(String message) {
+
+        TextView popup = new TextView(this);
+        popup.setText(message);
+        popup.setTextSize(15);
+        popup.setTextColor(Color.parseColor("#00332E"));
+        popup.setPadding(40, 28, 40, 28);
+
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.parseColor("#F2FFFFFF"));
+        bg.setCornerRadius(22f);
+        popup.setBackground(bg);
+
+        popup.setElevation(20f);
+        popup.setAlpha(0f);
+        popup.setTranslationY(-250);
+
+        addContentView(popup,
+                new ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+        );
+
+        popup.post(() -> popup.setX(
+                (getWindow().getDecorView().getWidth() - popup.getWidth()) / 2f
+        ));
+
+        popup.animate()
+                .translationY(120)
+                .alpha(1f)
+                .setDuration(380)
+                .setInterpolator(new DecelerateInterpolator())
+                .start();
+
+        popup.postDelayed(() ->
+                        popup.animate()
+                                .translationY(-200)
+                                .alpha(0f)
+                                .setDuration(350)
+                                .withEndAction(() -> {
+                                    ViewGroup parent = (ViewGroup) popup.getParent();
+                                    if (parent != null) parent.removeView(popup);
+                                })
+                                .start()
+                , 1700
         );
     }
 }
