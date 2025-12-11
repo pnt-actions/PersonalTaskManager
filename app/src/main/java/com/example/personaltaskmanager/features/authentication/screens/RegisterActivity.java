@@ -16,9 +16,6 @@ import com.example.personaltaskmanager.R;
 import com.example.personaltaskmanager.features.authentication.data.model.User;
 import com.example.personaltaskmanager.features.authentication.data.repository.AuthRepository;
 
-/**
- * Màn hình đăng ký user local.
- */
 public class RegisterActivity extends AppCompatActivity {
 
     private EditText etUser, etEmail, etPass, etConfirm;
@@ -100,8 +97,28 @@ public class RegisterActivity extends AppCompatActivity {
                     "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
 
             finish();
+            overridePendingTransition(
+                    R.anim.slide_in_left,
+                    R.anim.slide_out_right
+            );
         });
 
-        tvLogin.setOnClickListener(v -> finish());
+        // Nhấn "Đăng nhập" → quay lại với animation
+        tvLogin.setOnClickListener(v -> {
+            finish();
+            overridePendingTransition(
+                    R.anim.slide_in_left,
+                    R.anim.slide_out_right
+            );
+        });
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        overridePendingTransition(
+                R.anim.slide_in_left,
+                R.anim.slide_out_right
+        );
     }
 }
