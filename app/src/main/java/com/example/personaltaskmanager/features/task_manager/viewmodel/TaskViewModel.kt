@@ -16,6 +16,7 @@ class TaskViewModel(app: Application) : AndroidViewModel(app) {
 
     val allTasks: LiveData<List<Task>> = repo.getAllTasks()
 
+    /** ADD TASK (không ảnh – logic cũ) */
     fun addTask(title: String, desc: String, deadline: Long) {
         val t = Task(
             title,
@@ -26,6 +27,21 @@ class TaskViewModel(app: Application) : AndroidViewModel(app) {
             "",
             0
         )
+        repo.addTask(t)
+    }
+
+    /** ADD TASK (có ảnh công việc) */
+    fun addTask(title: String, desc: String, deadline: Long, imageUri: String?) {
+        val t = Task(
+            title,
+            desc,
+            System.currentTimeMillis(),
+            deadline,
+            "",
+            "",
+            0
+        )
+        t.imageUri = imageUri
         repo.addTask(t)
     }
 

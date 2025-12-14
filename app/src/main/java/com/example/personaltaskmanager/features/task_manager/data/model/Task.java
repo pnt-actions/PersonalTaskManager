@@ -28,6 +28,9 @@ public class Task {
     /** userId giúp tách dữ liệu theo từng account */
     public int userId;
 
+    /** URI ảnh công việc (Gallery) */
+    public String imageUri;   // ✅ THÊM
+
     // ==== CONSTRUCTOR CHÍNH CHO ROOM ====
     public Task(String title,
                 String description,
@@ -47,6 +50,7 @@ public class Task {
 
         this.userId = userId;
         this.isCompleted = false;
+        this.imageUri = null; // ✅
     }
 
     // ==== CONSTRUCTOR PHỤ — KHÔNG CHO ROOM DÙNG ====
@@ -64,6 +68,7 @@ public class Task {
 
         this.userId = 0;
         this.isCompleted = false;
+        this.imageUri = null; // ✅
     }
 
     // ==== GETTER ====
@@ -76,6 +81,7 @@ public class Task {
     public String getNotesJson() { return notesJson; }
     public String getTablesJson() { return tablesJson; }
     public int getUserId() { return userId; }
+    public String getImageUri() { return imageUri; } // ✅
 
     // ==== SETTER ====
     public void setTitle(String title) { this.title = title; }
@@ -85,4 +91,5 @@ public class Task {
     public void setNotesJson(String notesJson) { this.notesJson = notesJson; }
     public void setTablesJson(String tablesJson) { this.tablesJson = tablesJson; }
     public void setUserId(int userId) { this.userId = userId; }
+    public void setImageUri(String imageUri) { this.imageUri = imageUri; } // ✅
 }
