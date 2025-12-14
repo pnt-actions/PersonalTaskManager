@@ -7,7 +7,7 @@ public class NotionBlock {
         TODO,
         BULLET,
         DIVIDER,
-        FILE   // thêm block file
+        FILE
     }
 
     public String id;
@@ -15,9 +15,12 @@ public class NotionBlock {
     public String text;
     public boolean isChecked;
 
-    // thêm thuộc tính cho file
-    public String fileUri;     // content://...
-    public String fileName;    // tên file hiển thị
+    // FILE
+    public String fileUri;
+    public String fileName;
+
+    // ✅ TODO DEADLINE (millis)
+    public long deadline = 0;
 
     public NotionBlock(String id, Type type, String text, boolean isChecked) {
         this.id = id;

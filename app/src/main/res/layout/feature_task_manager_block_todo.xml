@@ -3,7 +3,8 @@
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp">
+    android:padding="8dp"
+    android:gravity="center_vertical">
 
     <CheckBox
         android:id="@+id/check_todo"
@@ -18,4 +19,12 @@
         android:background="@android:color/transparent"
         android:paddingHorizontal="8dp"
         android:hint="Nội dung việc cần làm"/>
+
+    <!-- deadline -->
+    <TextView
+        android:id="@+id/tv_todo_deadline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="📅"
+        android:padding="6dp"/>
 </LinearLayout>

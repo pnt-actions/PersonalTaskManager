@@ -12,16 +12,28 @@ import com.example.personaltaskmanager.features.calendar_events.data.local.entit
 import com.example.personaltaskmanager.features.calendar_events.data.local.entity.TaskCalendarEntity;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * CalendarRepository
  * ------------------
  * Trung gian giữa CalendarDatabase và ViewModel.
+ *
+ * ❗ Giữ nguyên chức năng:
+ *  - Event thường
+ *  - Link Task ↔ Event
+ *
+ * ❗ KHÔNG xử lý Todo con ở đây
  */
 public class CalendarRepository {
 
     private final CalendarDao dao;
     private final AuthRepository authRepo;
+
+    /** Executor riêng cho Calendar DB (tránh chạy main thread) */
+    private static final ExecutorService dbExecutor =
+            Executors.newSingleThreadExecutor();
 
     public CalendarRepository(Context context) {
         dao = CalendarDatabase.getInstance(context).calendarDao();
@@ -33,6 +45,9 @@ public class CalendarRepository {
         return (u != null) ? u.id : -1;
     }
 
+    /**
+     * Lấy các CalendarEventEntity theo ngày
+     */
     public LiveData<List<CalendarEventEntity>> getEventsByDate(
             long start,
             long end
@@ -40,7 +55,12 @@ public class CalendarRepository {
         return dao.getEventsByDate(getCurrentUserId(), start, end);
     }
 
+    /**
+     * Link Task với Event (chạy background thread)
+     */
     public void linkTaskToEvent(int taskId, int eventId) {
-        dao.linkTaskToEvent(new TaskCalendarEntity(taskId, eventId));
+        dbExecutor.execute(() ->
+                dao.linkTaskToEvent(new TaskCalendarEntity(taskId, eventId))
+        );
     }
 }
