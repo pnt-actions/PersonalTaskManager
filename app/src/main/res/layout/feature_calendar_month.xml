@@ -25,9 +25,9 @@
             android:id="@+id/tv_month_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
             android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_marginHorizontal="16dp" />
+            android:textStyle="bold" />
 
         <ImageButton
             android:id="@+id/btn_next_month"
@@ -37,44 +37,61 @@
             android:src="@drawable/feature_calendar_ic_arrow_right"
             android:tint="@color/calendar_primary"
             android:contentDescription="Next month" />
-
     </LinearLayout>
 
     <!-- FILTER -->
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:layout_marginTop="8dp">
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_auth_tab_container">
 
-        <TextView
-            android:id="@+id/btn_filter_all"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="All"
-            android:padding="8dp" />
+        <!-- HIGHLIGHT TRƯỢT -->
+        <View
+            android:id="@+id/view_filter_highlight"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_auth_tab_highlight" />
 
-        <TextView
-            android:id="@+id/btn_filter_task"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Công việc"
-            android:padding="8dp" />
+        <!-- FILTER BUTTONS -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:padding="4dp">
 
-        <TextView
-            android:id="@+id/btn_filter_todo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Việc"
-            android:padding="8dp" />
-    </LinearLayout>
+            <TextView
+                android:id="@+id/btn_filter_all"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="All"
+                android:textStyle="bold" />
 
-    <!-- CALENDAR (CỐ ĐỊNH, KHÔNG SCROLL) -->
+            <TextView
+                android:id="@+id/btn_filter_task"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Công việc" />
+
+            <TextView
+                android:id="@+id/btn_filter_todo"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Việc" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- CALENDAR -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_calendar_days"
         android:layout_width="match_parent"
-        android:layout_height="260dp"
+        android:layout_height="320dp"
         android:layout_marginTop="8dp" />
 
     <!-- NGÀY ĐƯỢC CHỌN -->
@@ -82,10 +99,10 @@
         android:id="@+id/tv_selected_date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Công việc ngày:"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="8dp"
+        android:text="Công việc ngày:" />
 
-    <!-- DANH SÁCH TASK + TODO (SCROLL DUY NHẤT) -->
+    <!-- TASK + TODO -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"

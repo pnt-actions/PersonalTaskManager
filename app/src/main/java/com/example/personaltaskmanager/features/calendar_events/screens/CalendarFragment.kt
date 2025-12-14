@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -54,6 +55,7 @@ class CalendarFragment : Fragment() {
     private lateinit var btnFilterAll: TextView
     private lateinit var btnFilterTask: TextView
     private lateinit var btnFilterTodo: TextView
+    private lateinit var filterHighlight: View
 
     // ===== ADAPTER =====
     private lateinit var taskAdapter: TaskAdapter
@@ -97,6 +99,7 @@ class CalendarFragment : Fragment() {
         btnFilterAll = view.findViewById(R.id.btn_filter_all)
         btnFilterTask = view.findViewById(R.id.btn_filter_task)
         btnFilterTodo = view.findViewById(R.id.btn_filter_todo)
+        filterHighlight = view.findViewById(R.id.view_filter_highlight)
 
         // ===== LAYOUT =====
         rvCalendar.layoutManager = GridLayoutManager(requireContext(), 7)
@@ -117,7 +120,6 @@ class CalendarFragment : Fragment() {
         // ===== VIEWMODEL =====
         taskViewModel =
             ViewModelProvider(requireActivity())[TaskViewModel::class.java]
-
         calendarViewModel =
             ViewModelProvider(this)[CalendarViewModel::class.java]
 
@@ -128,20 +130,7 @@ class CalendarFragment : Fragment() {
         btnNext.setColorFilter(primaryColor)
 
         // ===== FILTER =====
-        btnFilterAll.setOnClickListener {
-            currentFilter = FilterMode.ALL
-            reloadData()
-        }
-
-        btnFilterTask.setOnClickListener {
-            currentFilter = FilterMode.TASK
-            reloadData()
-        }
-
-        btnFilterTodo.setOnClickListener {
-            currentFilter = FilterMode.TODO
-            reloadData()
-        }
+        setupFilter()
 
         // ===== NAV MONTH =====
         btnPrev.setOnClickListener {
@@ -156,6 +145,88 @@ class CalendarFragment : Fragment() {
 
         loadMonth()
         reloadData()
+    }
+
+    private fun setupFilter() {
+        btnFilterAll.setOnClickListener { switchFilter(FilterMode.ALL, btnFilterAll) }
+        btnFilterTask.setOnClickListener { switchFilter(FilterMode.TASK, btnFilterTask) }
+        btnFilterTodo.setOnClickListener { switchFilter(FilterMode.TODO, btnFilterTodo) }
+
+        btnFilterAll.post {
+            moveHighlight(btnFilterAll, animate = false)
+        }
+    }
+
+    private fun switchFilter(mode: FilterMode, targetView: TextView) {
+        if (currentFilter == mode) return
+
+        moveHighlight(targetView, animate = true)
+        currentFilter = mode
+        reloadData()
+    }
+
+    private fun moveHighlight(target: TextView, animate: Boolean) {
+        filterHighlight.layoutParams.width = target.width
+        filterHighlight.requestLayout()
+
+        if (animate) {
+            filterHighlight.animate()
+                .x(target.x)
+                .setDuration(200)
+                .start()
+        } else {
+            filterHighlight.x = target.x
+        }
+    }
+
+    private fun reloadData() {
+
+        val animOut = AnimationUtils.loadAnimation(
+            requireContext(), R.anim.fade_slide_out_down
+        )
+        val animIn = AnimationUtils.loadAnimation(
+            requireContext(), R.anim.fade_slide_in_up
+        )
+
+        when (currentFilter) {
+
+            FilterMode.ALL -> {
+                // RESET STATE trước khi show lại
+                rvTasks.clearAnimation()
+                rvTodos.clearAnimation()
+
+                rvTasks.alpha = 1f
+                rvTodos.alpha = 1f
+                rvTasks.translationY = 0f
+                rvTodos.translationY = 0f
+
+                rvTasks.visibility = View.VISIBLE
+                rvTodos.visibility = View.VISIBLE
+
+                rvTasks.startAnimation(animIn)
+                rvTodos.startAnimation(animIn)
+            }
+
+            FilterMode.TASK -> {
+                if (rvTodos.visibility == View.VISIBLE) {
+                    rvTodos.startAnimation(animOut)
+                    rvTodos.visibility = View.GONE
+                }
+                rvTasks.visibility = View.VISIBLE
+                rvTasks.startAnimation(animIn)
+            }
+
+            FilterMode.TODO -> {
+                if (rvTasks.visibility == View.VISIBLE) {
+                    rvTasks.startAnimation(animOut)
+                    rvTasks.visibility = View.GONE
+                }
+                rvTodos.visibility = View.VISIBLE
+                rvTodos.startAnimation(animIn)
+            }
+        }
+
+        loadTasksAndTodosOfDate(selectedDate)
     }
 
     private fun loadMonth() {
@@ -176,15 +247,10 @@ class CalendarFragment : Fragment() {
         }
     }
 
-    private fun reloadData() {
-        loadTasksAndTodosOfDate(selectedDate)
-    }
-
     /**
      * Load task + todo con theo ngày
      */
     private fun loadTasksAndTodosOfDate(date: LocalDate) {
-
         val startMillis =
             date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
         val endMillis =
@@ -193,15 +259,11 @@ class CalendarFragment : Fragment() {
         taskViewModel.getTasksByDate(startMillis, endMillis)
             .observe(viewLifecycleOwner) { tasks ->
 
-                // ===== TASK =====
                 if (currentFilter == FilterMode.ALL || currentFilter == FilterMode.TASK) {
                     rvTasks.visibility = View.VISIBLE
                     taskAdapter.setData(tasks)
-                } else {
-                    rvTasks.visibility = View.GONE
-                }
+                } else rvTasks.visibility = View.GONE
 
-                // ===== TODO CON =====
                 if (currentFilter == FilterMode.ALL || currentFilter == FilterMode.TODO) {
 
                     val groupedTodos = mutableMapOf<String, MutableList<String>>()
@@ -221,9 +283,7 @@ class CalendarFragment : Fragment() {
                     rvTodos.visibility = View.VISIBLE
                     todoAdapter.setData(groupedTodos)
 
-                } else {
-                    rvTodos.visibility = View.GONE
-                }
+                } else rvTodos.visibility = View.GONE
             }
     }
 
