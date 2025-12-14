@@ -6,8 +6,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import android.widget.ImageButton
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.personaltaskmanager.R
+import com.example.personaltaskmanager.features.calendar_events.viewmodel.CalendarViewModel
 import com.example.personaltaskmanager.features.task_manager.data.model.Task
 import com.example.personaltaskmanager.features.task_manager.screens.TaskAdapter
 import com.example.personaltaskmanager.features.task_manager.screens.TaskDetailActivity
@@ -24,25 +25,46 @@ import java.time.YearMonth
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+/**
+ * CalendarFragment
+ * ----------------
+ * Màn hình Calendar chính của ứng dụng.
+ *
+ * LƯU Ý KIẾN TRÚC:
+ * - TaskViewModel: dùng để HIỂN THỊ task theo ngày (logic cũ, giữ nguyên)
+ * - CalendarViewModel: chuẩn bị cho việc hiển thị CalendarEvent độc lập
+ *
+ * Phiên bản hiện tại:
+ * - Calendar vẫn hiển thị task theo deadline
+ * - Chưa hiển thị CalendarEvent (sẽ làm ở bước sau)
+ */
 class CalendarFragment : Fragment() {
 
+    // ===== UI =====
     private lateinit var tvMonthTitle: TextView
     private lateinit var tvSelectedDate: TextView
     private lateinit var rvCalendar: RecyclerView
 
-    // ⬇️ Task list view
     private lateinit var rvTasks: RecyclerView
     private lateinit var taskAdapter: TaskAdapter
 
     private lateinit var btnPrev: ImageButton
     private lateinit var btnNext: ImageButton
 
-    private lateinit var viewModel: TaskViewModel
+    // ===== VIEWMODEL =====
+    /** ViewModel cũ — KHÔNG xoá để tránh phá logic đang hoạt động */
+    private lateinit var taskViewModel: TaskViewModel
 
+    /** ViewModel mới cho Calendar (DB riêng) */
+    private lateinit var calendarViewModel: CalendarViewModel
+
+    // ===== STATE =====
     private var selectedDate: LocalDate = LocalDate.now()
     private var currentMonth: YearMonth = YearMonth.now()
 
     private val REQUEST_EDIT_TASK = 3010
+
+    // ============================================================
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -55,7 +77,7 @@ class CalendarFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Init calendar views
+        // ===== INIT VIEW =====
         tvMonthTitle = view.findViewById(R.id.tv_month_title)
         tvSelectedDate = view.findViewById(R.id.tv_selected_date)
         rvCalendar = view.findViewById(R.id.rv_calendar_days)
@@ -65,30 +87,35 @@ class CalendarFragment : Fragment() {
         btnPrev = view.findViewById(R.id.btn_prev_month)
         btnNext = view.findViewById(R.id.btn_next_month)
 
-        // Init task list
+        // ===== TASK LIST =====
         rvTasks = view.findViewById(R.id.rv_tasks_of_day)
         rvTasks.layoutManager = LinearLayoutManager(requireContext())
 
-        // Task adapter
         taskAdapter = TaskAdapter(
-            { task -> openEditTask(task) },                // listener
-            { task -> viewModel.deleteTask(task) },        // delete
-            { task, done -> viewModel.toggleCompleted(task, done) }   // toggle
+            { task -> openEditTask(task) },
+            { task -> taskViewModel.deleteTask(task) },
+            { task, done -> taskViewModel.toggleCompleted(task, done) }
         )
         rvTasks.adapter = taskAdapter
 
-        // ViewModel
-        viewModel = ViewModelProvider(requireActivity()).get(TaskViewModel::class.java)
+        // ===== VIEWMODEL =====
+        taskViewModel =
+            ViewModelProvider(requireActivity())[TaskViewModel::class.java]
 
-        // Tint buttons
-        val primaryColor = ContextCompat.getColor(requireContext(), R.color.calendar_primary)
+        calendarViewModel =
+            ViewModelProvider(this)[CalendarViewModel::class.java]
+
+        // ===== UI STYLE =====
+        val primaryColor =
+            ContextCompat.getColor(requireContext(), R.color.calendar_primary)
         btnPrev.setColorFilter(primaryColor)
         btnNext.setColorFilter(primaryColor)
 
-        // Initial load
+        // ===== INITIAL LOAD =====
         loadMonth()
         loadTasksOfDate(selectedDate)
 
+        // ===== ACTION =====
         btnPrev.setOnClickListener {
             currentMonth = currentMonth.minusMonths(1)
             loadMonth()
@@ -100,6 +127,11 @@ class CalendarFragment : Fragment() {
         }
     }
 
+    // ============================================================
+
+    /**
+     * Load calendar month UI
+     */
     private fun loadMonth() {
         val formatter = DateTimeFormatter.ofPattern("MMMM yyyy")
         tvMonthTitle.text = currentMonth.format(formatter)
@@ -112,7 +144,7 @@ class CalendarFragment : Fragment() {
             onClick = { clickedDay ->
                 if (clickedDay.isCurrentMonth) {
                     selectedDate = clickedDay.date
-                    tvSelectedDate.text = "Công việc ngày: ${selectedDate}"
+                    tvSelectedDate.text = "Công việc ngày: $selectedDate"
 
                     loadMonth()
                     loadTasksOfDate(selectedDate)
@@ -121,7 +153,9 @@ class CalendarFragment : Fragment() {
         )
     }
 
-    /** Load tasks of selected date */
+    /**
+     * Load task theo ngày (logic CŨ – giữ nguyên)
+     */
     private fun loadTasksOfDate(date: LocalDate) {
         val startMillis = date
             .atStartOfDay(ZoneId.systemDefault())
@@ -134,20 +168,26 @@ class CalendarFragment : Fragment() {
             .toInstant()
             .toEpochMilli()
 
-        viewModel.getTasksByDate(startMillis, endMillis)
+        taskViewModel
+            .getTasksByDate(startMillis, endMillis)
             .observe(viewLifecycleOwner) { tasks ->
                 taskAdapter.setData(tasks)
             }
     }
 
-    /** Khi click vào 1 task từ Calendar → mở Activity chỉnh sửa */
+    /**
+     * Click task → mở màn hình chỉnh sửa
+     */
     private fun openEditTask(task: Task) {
-        val intent = Intent(requireContext(), TaskDetailActivity::class.java)
+        val intent =
+            Intent(requireContext(), TaskDetailActivity::class.java)
         intent.putExtra("task_id", task.getId())
         startActivityForResult(intent, REQUEST_EDIT_TASK)
     }
 
-    /** Calendar generator (giữ nguyên như code cũ) */
+    /**
+     * Calendar generator (GIỮ NGUYÊN CODE CŨ)
+     */
     private fun generateCalendarDays(month: YearMonth): List<CalendarDay> {
         val days = mutableListOf<CalendarDay>()
 
@@ -193,5 +233,4 @@ class CalendarFragment : Fragment() {
 
         return days
     }
-
 }
