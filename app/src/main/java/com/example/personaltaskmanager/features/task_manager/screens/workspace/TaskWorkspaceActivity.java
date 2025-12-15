@@ -66,6 +66,10 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
         setupActions();
     }
 
+    /**
+     * Observe Task từ ViewModel
+     * Khi Task thay đổi → load lại thông tin + block
+     */
     private void observeTask() {
         vm.getTaskById(taskId).observe(this, t -> {
             if (t == null) return;
@@ -125,6 +129,7 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
             save();
             finish();
         });
+
         btnAddParagraph.setOnClickListener(v -> addBlock(NotionBlock.Type.PARAGRAPH));
         btnAddTodo.setOnClickListener(v -> addBlock(NotionBlock.Type.TODO));
         btnAddBullet.setOnClickListener(v -> addBlock(NotionBlock.Type.BULLET));
@@ -149,7 +154,7 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
     protected void onActivityResult(int req, int res, Intent data) {
         super.onActivityResult(req, res, data);
 
-        // ===== XỬ LÝ PICK FILE (FIX CHÍNH) =====
+        // ===== XỬ LÝ PICK FILE =====
         if (req == REQ_PICK_FILE && res == RESULT_OK && data != null) {
             Uri uri = data.getData();
             if (uri == null) return;
@@ -172,15 +177,15 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
             blocks.add(fileBlock);
             adapter.notifyItemInserted(blocks.size() - 1);
             rvWorkspace.scrollToPosition(blocks.size() - 1);
-            return;
-        }
-
-        if (req == REQ_EDIT_TASK && res == RESULT_OK) {
-            // giữ nguyên
         }
     }
 
+    /**
+     * Lưu block xuống DB
+     * Calendar đọc TODO con hoàn toàn từ notesJson
+     */
     private void save() {
+        if (task == null) return;
         task.setNotesJson(NotionBlockParser.toJson(blocks));
         vm.updateTask(task, task.getTitle(), task.getDescription(), task.getDeadline());
     }
@@ -192,5 +197,20 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
     }
 
     @Override public void onItemMove(int fromPos, int toPos) {}
-    @Override public void onItemDrop() { save(); }
+
+    @Override
+    public void onItemDrop() {
+        save();
+    }
+
+    /**
+     * ĐẢM BẢO:
+     * - TODO con + deadline luôn được lưu
+     * - Calendar đọc được ngay khi chuyển tab
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        save();
+    }
 }

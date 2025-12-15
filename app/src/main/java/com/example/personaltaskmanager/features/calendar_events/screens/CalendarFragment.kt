@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AnimationUtils
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -14,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+
 import com.example.personaltaskmanager.R
 import com.example.personaltaskmanager.features.calendar_events.viewmodel.CalendarViewModel
 import com.example.personaltaskmanager.features.task_manager.data.model.Task
@@ -22,6 +22,7 @@ import com.example.personaltaskmanager.features.task_manager.screens.TaskDetailA
 import com.example.personaltaskmanager.features.task_manager.screens.workspace.blocks.NotionBlock
 import com.example.personaltaskmanager.features.task_manager.screens.workspace.blocks.NotionBlockParser
 import com.example.personaltaskmanager.features.task_manager.viewmodel.TaskViewModel
+
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
@@ -114,16 +115,15 @@ class CalendarFragment : Fragment() {
             { task -> taskViewModel.deleteTask(task) },
             { task, done -> taskViewModel.toggleCompleted(task, done) }
         )
+
         todoAdapter = CalendarTodoAdapter()
 
         rvTasks.adapter = taskAdapter
         rvTodos.adapter = todoAdapter
 
         // ===== VIEWMODEL =====
-        taskViewModel =
-            ViewModelProvider(requireActivity())[TaskViewModel::class.java]
-        calendarViewModel =
-            ViewModelProvider(this)[CalendarViewModel::class.java]
+        taskViewModel = ViewModelProvider(requireActivity())[TaskViewModel::class.java]
+        calendarViewModel = ViewModelProvider(this)[CalendarViewModel::class.java]
 
         // ===== COLOR =====
         val primaryColor =
@@ -149,80 +149,36 @@ class CalendarFragment : Fragment() {
         reloadData()
     }
 
+    // ===== FILTER =====
     private fun setupFilter() {
         btnFilterAll.setOnClickListener { switchFilter(FilterMode.ALL, btnFilterAll) }
         btnFilterTask.setOnClickListener { switchFilter(FilterMode.TASK, btnFilterTask) }
         btnFilterTodo.setOnClickListener { switchFilter(FilterMode.TODO, btnFilterTodo) }
 
+        // ✅ FIX: đảm bảo highlight hiển thị ngay khi mở fragment
         btnFilterAll.post {
-            moveHighlight(btnFilterAll, animate = false)
+            filterHighlight.x = btnFilterAll.x
+            filterHighlight.layoutParams.width = btnFilterAll.width
+            filterHighlight.requestLayout()
         }
     }
 
-    private fun switchFilter(mode: FilterMode, targetView: TextView) {
+    private fun switchFilter(mode: FilterMode, target: TextView) {
         if (currentFilter == mode) return
-
-        moveHighlight(targetView, animate = true)
         currentFilter = mode
-        reloadData()
-    }
 
-    private fun moveHighlight(target: TextView, animate: Boolean) {
+        filterHighlight.animate()
+            .x(target.x)
+            .setDuration(200)
+            .start()
+
         filterHighlight.layoutParams.width = target.width
         filterHighlight.requestLayout()
 
-        if (animate) {
-            filterHighlight.animate()
-                .x(target.x)
-                .setDuration(200)
-                .start()
-        } else {
-            filterHighlight.x = target.x
-        }
+        reloadData()
     }
 
-    private fun reloadData() {
-
-        val animOut = AnimationUtils.loadAnimation(
-            requireContext(), R.anim.fade_slide_out_down
-        )
-        val animIn = AnimationUtils.loadAnimation(
-            requireContext(), R.anim.fade_slide_in_up
-        )
-
-        when (currentFilter) {
-
-            FilterMode.ALL -> {
-                rvTasks.clearAnimation()
-                rvTodos.clearAnimation()
-                rvTasks.visibility = View.VISIBLE
-                rvTodos.visibility = View.VISIBLE
-                rvTasks.startAnimation(animIn)
-                rvTodos.startAnimation(animIn)
-            }
-
-            FilterMode.TASK -> {
-                if (rvTodos.visibility == View.VISIBLE) {
-                    rvTodos.startAnimation(animOut)
-                    rvTodos.visibility = View.GONE
-                }
-                rvTasks.visibility = View.VISIBLE
-                rvTasks.startAnimation(animIn)
-            }
-
-            FilterMode.TODO -> {
-                if (rvTasks.visibility == View.VISIBLE) {
-                    rvTasks.startAnimation(animOut)
-                    rvTasks.visibility = View.GONE
-                }
-                rvTodos.visibility = View.VISIBLE
-                rvTodos.startAnimation(animIn)
-            }
-        }
-
-        loadTasksAndTodosOfDate(selectedDate)
-    }
-
+    // ===== LOAD MONTH =====
     private fun loadMonth() {
         val formatter = DateTimeFormatter.ofPattern("MMMM yyyy")
         tvMonthTitle.text = currentMonth.format(formatter)
@@ -238,25 +194,36 @@ class CalendarFragment : Fragment() {
             .observe(viewLifecycleOwner) { tasks ->
 
                 val days = generateCalendarDays(currentMonth)
+                val markedDates = mutableSetOf<LocalDate>()
 
-                val taskDates = tasks.mapNotNull { task ->
-                    task.deadline?.let { millis ->
-                        java.time.Instant.ofEpochMilli(millis)
-                            .atZone(ZoneId.systemDefault())
-                            .toLocalDate()
+                tasks.forEach { task ->
+                    if (task.deadline > 0) {
+                        markedDates.add(
+                            java.time.Instant.ofEpochMilli(task.deadline)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                        )
                     }
-                }.toSet()
 
-                days.forEach { day ->
-                    day.hasEvent = taskDates.contains(day.date)
+                    val blocks = NotionBlockParser.fromJson(task.notesJson)
+                    blocks.filter {
+                        it.type == NotionBlock.Type.TODO && it.deadline > 0
+                    }.forEach {
+                        markedDates.add(
+                            java.time.Instant.ofEpochMilli(it.deadline)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                        )
+                    }
                 }
 
-                calendarDayAdapter = CalendarDayAdapter(
-                    days = days,
-                    selectedDate = selectedDate
-                ) { clickedDay ->
-                    if (clickedDay.isValid) {
-                        selectedDate = clickedDay.date
+                days.forEach { day ->
+                    day.hasEvent = markedDates.contains(day.date)
+                }
+
+                calendarDayAdapter = CalendarDayAdapter(days, selectedDate) { clicked ->
+                    if (clicked.isValid) {
+                        selectedDate = clicked.date
                         tvSelectedDate.text = "Công việc ngày: $selectedDate"
                         calendarDayAdapter.updateSelectedDate(selectedDate)
                         reloadData()
@@ -267,9 +234,11 @@ class CalendarFragment : Fragment() {
             }
     }
 
-    /**
-     * Load task + todo con theo ngày
-     */
+    // ===== LOAD DATA THEO NGÀY =====
+    private fun reloadData() {
+        loadTasksAndTodosOfDate(selectedDate)
+    }
+
     private fun loadTasksAndTodosOfDate(date: LocalDate) {
 
         val startMillis =
@@ -277,58 +246,71 @@ class CalendarFragment : Fragment() {
         val endMillis =
             date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
-        taskViewModel.getTasksByDate(startMillis, endMillis)
+        taskViewModel.allTasks
             .observe(viewLifecycleOwner) { tasks ->
 
+                // ===== TASK =====
                 if (currentFilter == FilterMode.ALL || currentFilter == FilterMode.TASK) {
+                    val taskOfDay = tasks.filter {
+                        it.deadline in startMillis until endMillis
+                    }
                     rvTasks.visibility = View.VISIBLE
-                    taskAdapter.setData(tasks)
-                } else rvTasks.visibility = View.GONE
+                    taskAdapter.setData(taskOfDay)
+                } else {
+                    rvTasks.visibility = View.GONE
+                }
 
+                // ===== TODO CON =====
                 if (currentFilter == FilterMode.ALL || currentFilter == FilterMode.TODO) {
 
-                    val groupedTodos = mutableMapOf<String, MutableList<String>>()
+                    val grouped = mutableMapOf<String, MutableList<String>>()
 
                     tasks.forEach { task ->
                         val blocks = NotionBlockParser.fromJson(task.notesJson)
+
                         blocks.filter {
                             it.type == NotionBlock.Type.TODO &&
                                     it.deadline in startMillis until endMillis
                         }.forEach { todo ->
-                            groupedTodos
+                            grouped
                                 .getOrPut(task.title) { mutableListOf() }
                                 .add(todo.text)
                         }
                     }
 
                     rvTodos.visibility = View.VISIBLE
-                    todoAdapter.setData(groupedTodos)
+                    todoAdapter.setData(grouped)
 
-                } else rvTodos.visibility = View.GONE
+                } else {
+                    rvTodos.visibility = View.GONE
+                }
             }
     }
 
+
+    // ===== OPEN TASK DETAIL =====
     private fun openEditTask(task: Task) {
         val intent = Intent(requireContext(), TaskDetailActivity::class.java)
-        intent.putExtra("task_id", task.getId())
+        intent.putExtra("task_id", task.id)
         startActivityForResult(intent, REQUEST_EDIT_TASK)
     }
 
+    // ===== GENERATE CALENDAR GRID =====
     private fun generateCalendarDays(month: YearMonth): List<CalendarDay> {
         val days = mutableListOf<CalendarDay>()
 
         val firstDay = month.atDay(1)
-        val totalDays = month.lengthOfMonth()
         val dayOfWeekIndex = firstDay.dayOfWeek.value % 7
 
         val prevMonth = month.minusMonths(1)
         val prevMonthDays = prevMonth.lengthOfMonth()
+
         for (i in 1..dayOfWeekIndex) {
             val dayNum = prevMonthDays - (dayOfWeekIndex - i)
             days.add(CalendarDay(dayNum, false, prevMonth.atDay(dayNum)))
         }
 
-        for (i in 1..totalDays) {
+        for (i in 1..month.lengthOfMonth()) {
             days.add(CalendarDay(i, true, month.atDay(i)))
         }
 
