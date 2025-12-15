@@ -16,6 +16,7 @@ class TaskViewModel(app: Application) : AndroidViewModel(app) {
 
     val allTasks: LiveData<List<Task>> = repo.getAllTasks()
 
+    /** ADD TASK (không ảnh – logic cũ) */
     fun addTask(title: String, desc: String, deadline: Long) {
         val t = Task(
             title,
@@ -24,8 +25,23 @@ class TaskViewModel(app: Application) : AndroidViewModel(app) {
             deadline,
             "",
             "",
-            0   // userId được Repository tự gán
+            0
         )
+        repo.addTask(t)
+    }
+
+    /** ADD TASK (có ảnh công việc) */
+    fun addTask(title: String, desc: String, deadline: Long, imageUri: String?) {
+        val t = Task(
+            title,
+            desc,
+            System.currentTimeMillis(),
+            deadline,
+            "",
+            "",
+            0
+        )
+        t.imageUri = imageUri
         repo.addTask(t)
     }
 
@@ -33,9 +49,6 @@ class TaskViewModel(app: Application) : AndroidViewModel(app) {
         repo.updateTask(task)
     }
 
-    /**
-     * Update có truyền title/desc/deadline (TaskDetailActivity + Workspace cần)
-     */
     fun updateTask(task: Task, title: String, desc: String, deadline: Long) {
         task.title = title
         task.description = desc
@@ -51,10 +64,8 @@ class TaskViewModel(app: Application) : AndroidViewModel(app) {
         return repo.getTasksByDate(start, end)
     }
 
-    /**
-     * Bổ sung để TaskDetailActivity, WorkspaceActivity, TaskInfoFragment chạy đúng.
-     */
-    fun getTaskById(taskId: Int): Task? {
+    // SỬA: trả LiveData<Task>
+    fun getTaskById(taskId: Int): LiveData<Task> {
         return repo.getTaskById(taskId)
     }
 

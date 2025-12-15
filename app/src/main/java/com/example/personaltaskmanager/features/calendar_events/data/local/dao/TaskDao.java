@@ -1,1 +1,0 @@
-package com.example.personaltaskmanager.features.calendar_events.data.local.dao; public interface TaskDao {}

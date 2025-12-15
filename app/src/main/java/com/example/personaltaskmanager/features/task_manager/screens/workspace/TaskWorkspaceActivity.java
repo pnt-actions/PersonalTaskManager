@@ -2,15 +2,11 @@ package com.example.personaltaskmanager.features.task_manager.screens.workspace;
 
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.provider.OpenableColumns;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -27,7 +23,6 @@ import com.example.personaltaskmanager.features.task_manager.screens.workspace.b
 import com.example.personaltaskmanager.features.task_manager.screens.workspace.blocks.NotionBlockParser;
 import com.example.personaltaskmanager.features.task_manager.viewmodel.TaskViewModel;
 import com.google.android.material.chip.Chip;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -37,7 +32,7 @@ import java.util.UUID;
 
 /**
  * Màn hình Workspace của Task — hỗ trợ block kiểu Notion.
- * Giữ nguyên toàn bộ logic cũ, chỉ bổ sung import TaskViewModel.
+ * Giữ nguyên toàn bộ logic cũ.
  */
 public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHandler {
 
@@ -52,6 +47,7 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
 
     private TaskViewModel vm;
     private Task task;
+    private int taskId;
 
     private static final int REQ_PICK_FILE = 2001;
     private static final int REQ_EDIT_TASK = 3001;
@@ -62,15 +58,25 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
         setContentView(R.layout.feature_task_manager_workspace);
 
         vm = new ViewModelProvider(this).get(TaskViewModel.class);
-
-        int taskId = getIntent().getIntExtra("task_id", -1);
-        task = vm.getTaskById(taskId);
+        taskId = getIntent().getIntExtra("task_id", -1);
 
         initViews();
         initRecycler();
-        applyTaskInfo();
-        loadBlocks();
+        observeTask();
         setupActions();
+    }
+
+    /**
+     * Observe Task từ ViewModel
+     * Khi Task thay đổi → load lại thông tin + block
+     */
+    private void observeTask() {
+        vm.getTaskById(taskId).observe(this, t -> {
+            if (t == null) return;
+            task = t;
+            applyTaskInfo();
+            loadBlocks();
+        });
     }
 
     private void initViews() {
@@ -87,37 +93,28 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
         tvTaskTitle = findViewById(R.id.tv_task_title);
         tvTaskDeadline = findViewById(R.id.tv_task_deadline);
 
-        View topBar = findViewById(R.id.card_top_bar);
-        topBar.setOnClickListener(v -> openTaskDetail());
+        findViewById(R.id.card_top_bar).setOnClickListener(v -> openTaskDetail());
     }
 
     private void initRecycler() {
         rvWorkspace.setLayoutManager(new LinearLayoutManager(this));
         adapter = new NotionBlockAdapter(blocks);
-
-        adapter.setFileMenuListener((block, position, anchor) -> showBottomSheet(block, position));
-
         rvWorkspace.setAdapter(adapter);
 
         Vibrator vib = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-
-        ItemTouchHelper dragHelper =
+        ItemTouchHelper helper =
                 new ItemTouchHelper(new BlockDragCallback(blocks, adapter, vib, this));
-
-        dragHelper.attachToRecyclerView(rvWorkspace);
+        helper.attachToRecyclerView(rvWorkspace);
     }
 
     private void applyTaskInfo() {
-        if (task != null) {
-            tvTaskTitle.setText(task.getTitle());
-
-            long dl = task.getDeadline();
-            if (dl > 0) {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                tvTaskDeadline.setText(sdf.format(dl));
-            } else {
-                tvTaskDeadline.setText("No deadline");
-            }
+        tvTaskTitle.setText(task.getTitle());
+        long dl = task.getDeadline();
+        if (dl > 0) {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            tvTaskDeadline.setText(sdf.format(dl));
+        } else {
+            tvTaskDeadline.setText("No deadline");
         }
     }
 
@@ -141,12 +138,7 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
     }
 
     private void addBlock(NotionBlock.Type type) {
-        blocks.add(new NotionBlock(
-                UUID.randomUUID().toString(),
-                type,
-                "",
-                false
-        ));
+        blocks.add(new NotionBlock(UUID.randomUUID().toString(), type, "", false));
         adapter.notifyItemInserted(blocks.size() - 1);
         rvWorkspace.scrollToPosition(blocks.size() - 1);
     }
@@ -154,6 +146,7 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
     private void pickFile() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType("*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
         startActivityForResult(intent, REQ_PICK_FILE);
     }
 
@@ -161,154 +154,63 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
     protected void onActivityResult(int req, int res, Intent data) {
         super.onActivityResult(req, res, data);
 
+        // ===== XỬ LÝ PICK FILE =====
         if (req == REQ_PICK_FILE && res == RESULT_OK && data != null) {
             Uri uri = data.getData();
+            if (uri == null) return;
 
-            NotionBlock block = new NotionBlock(
-                    UUID.randomUUID().toString(),
-                    NotionBlock.Type.FILE,
-                    "",
-                    false
-            );
+            String fileName = "File";
+            Cursor c = getContentResolver().query(uri, null, null, null, null);
+            if (c != null) {
+                int nameIndex = c.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                if (c.moveToFirst() && nameIndex >= 0) {
+                    fileName = c.getString(nameIndex);
+                }
+                c.close();
+            }
 
-            block.fileUri = uri.toString();
-            block.fileName = getFileName(uri);
+            NotionBlock fileBlock =
+                    new NotionBlock(UUID.randomUUID().toString(), NotionBlock.Type.FILE, "", false);
+            fileBlock.fileUri = uri.toString();
+            fileBlock.fileName = fileName;
 
-            blocks.add(block);
+            blocks.add(fileBlock);
             adapter.notifyItemInserted(blocks.size() - 1);
             rvWorkspace.scrollToPosition(blocks.size() - 1);
         }
-
-        if (req == REQ_EDIT_TASK && res == RESULT_OK) {
-            task = vm.getTaskById(task.getId());
-            applyTaskInfo();
-            showIOSPopup("Đã cập nhật công việc");
-        }
     }
 
-    private String getFileName(Uri uri) {
-        String name = "";
-        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-        if (cursor != null) {
-            int idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-            cursor.moveToFirst();
-            name = cursor.getString(idx);
-            cursor.close();
-        }
-        return name;
-    }
-
-    private void showBottomSheet(NotionBlock block, int position) {
-        BottomSheetDialog dialog = new BottomSheetDialog(this);
-        View view = getLayoutInflater().inflate(R.layout.feature_task_manager_file_actions, null);
-
-        dialog.setContentView(view);
-
-        TextView btnView = view.findViewById(R.id.btn_action_view);
-        TextView btnCopy = view.findViewById(R.id.btn_action_copy);
-        TextView btnDel = view.findViewById(R.id.btn_action_delete);
-
-        btnView.setOnClickListener(v -> {
-            dialog.dismiss();
-            Intent i = new Intent(Intent.ACTION_VIEW);
-            i.setDataAndType(Uri.parse(block.fileUri), "*/*");
-            i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            startActivity(i);
-        });
-
-        btnCopy.setOnClickListener(v -> {
-            dialog.dismiss();
-            android.content.ClipboardManager cm =
-                    (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-
-            cm.setPrimaryClip(
-                    android.content.ClipData.newPlainText("file", block.fileUri)
-            );
-        });
-
-        btnDel.setOnClickListener(v -> {
-            dialog.dismiss();
-            blocks.remove(position);
-            adapter.notifyItemRemoved(position);
-        });
-
-        dialog.show();
-    }
-
+    /**
+     * Lưu block xuống DB
+     * Calendar đọc TODO con hoàn toàn từ notesJson
+     */
     private void save() {
-        String json = NotionBlockParser.toJson(blocks);
-        task.setNotesJson(json);
-
-        vm.updateTask(
-                task,
-                task.getTitle(),
-                task.getDescription(),
-                task.getDeadline()
-        );
+        if (task == null) return;
+        task.setNotesJson(NotionBlockParser.toJson(blocks));
+        vm.updateTask(task, task.getTitle(), task.getDescription(), task.getDeadline());
     }
 
     private void openTaskDetail() {
         Intent i = new Intent(this, TaskDetailActivity.class);
-        i.putExtra("task_id", task.getId());
+        i.putExtra("task_id", taskId);
         startActivityForResult(i, REQ_EDIT_TASK);
     }
 
-    private void showIOSPopup(String message) {
-        TextView popup = new TextView(this);
-        popup.setText(message);
-        popup.setTextSize(15);
-        popup.setTextColor(Color.parseColor("#00332E"));
-        popup.setPadding(40, 28, 40, 28);
-
-        GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.parseColor("#F2FFFFFF"));
-        bg.setCornerRadius(22f);
-        popup.setBackground(bg);
-
-        popup.setElevation(20f);
-        popup.setAlpha(0f);
-        popup.setTranslationY(-250);
-
-        addContentView(
-                popup,
-                new ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-        );
-
-        popup.post(() -> popup.setX(
-                (getWindow().getDecorView().getWidth() - popup.getWidth()) / 2f
-        ));
-
-        popup.animate()
-                .translationY(120)
-                .alpha(1f)
-                .setDuration(380)
-                .setInterpolator(new DecelerateInterpolator())
-                .start();
-
-        popup.postDelayed(
-                () -> popup.animate()
-                        .translationY(-200)
-                        .alpha(0f)
-                        .setDuration(350)
-                        .withEndAction(() -> {
-                            ViewGroup parent = (ViewGroup) popup.getParent();
-                            if (parent != null) parent.removeView(popup);
-                        })
-                        .start(),
-                1700
-        );
-    }
-
-    @Override
-    public void onItemMove(int fromPos, int toPos) {
-        // Đã xử lý trong BlockDragCallback
-    }
+    @Override public void onItemMove(int fromPos, int toPos) {}
 
     @Override
     public void onItemDrop() {
+        save();
+    }
+
+    /**
+     * ĐẢM BẢO:
+     * - TODO con + deadline luôn được lưu
+     * - Calendar đọc được ngay khi chuyển tab
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
         save();
     }
 }

@@ -140,6 +140,7 @@ public class NotionBlockAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
         private final EditText edt;
         private final CheckBox checkbox;
+        private final TextView tvDeadline;
         private TextWatcher watcher;
 
         public TodoHolder(@NonNull View itemView) {
@@ -147,6 +148,7 @@ public class NotionBlockAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
             edt = itemView.findViewById(R.id.edt_todo);
             checkbox = itemView.findViewById(R.id.check_todo);
+            tvDeadline = itemView.findViewById(R.id.tv_todo_deadline);
         }
 
         @Override
@@ -160,8 +162,37 @@ public class NotionBlockAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             watcher = new SimpleWatcher(text -> block.text = text);
             edt.addTextChangedListener(watcher);
 
-            checkbox.setOnCheckedChangeListener((buttonView, checked) -> {
-                block.isChecked = checked;
+            checkbox.setOnCheckedChangeListener((v, checked) ->
+                    block.isChecked = checked
+            );
+
+            // hiển thị deadline
+            if (block.deadline > 0) {
+                tvDeadline.setText(
+                        android.text.format.DateFormat.format("yyyy-MM-dd", block.deadline)
+                );
+            } else {
+                tvDeadline.setText("----");
+            }
+
+            tvDeadline.setOnClickListener(v -> {
+                java.util.Calendar c = java.util.Calendar.getInstance();
+
+                if (block.deadline > 0)
+                    c.setTimeInMillis(block.deadline);
+
+                new android.app.DatePickerDialog(
+                        v.getContext(),
+                        (view, y, m, d) -> {
+                            java.util.Calendar cal = java.util.Calendar.getInstance();
+                            cal.set(y, m, d, 0, 0, 0);
+                            block.deadline = cal.getTimeInMillis();
+                            notifyItemChanged(getAdapterPosition());
+                        },
+                        c.get(java.util.Calendar.YEAR),
+                        c.get(java.util.Calendar.MONTH),
+                        c.get(java.util.Calendar.DAY_OF_MONTH)
+                ).show();
             });
         }
     }

@@ -1,105 +1,194 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:background="@color/white">
+    android:orientation="vertical"
+    android:background="@drawable/bg_app_gradient_subtle">
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:padding="24dp"
-        android:gravity="center_horizontal"
+    <!-- ================= MAIN CONTENT ================= -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:overScrollMode="never">
 
-        <ImageView
-            android:id="@+id/iv_app_icon"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_marginTop="32dp"
-            android:src="@drawable/ic_launcher_foreground"
-            app:tint="@color/blue_700"
-            android:contentDescription="Biểu tượng ứng dụng" />
-
-        <TextView
-            android:id="@+id/tvTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Welcome to PersonalTask"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="@color/textPrimary"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="4dp" />
-
-        <TextView
-            android:id="@+id/tvSubtitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Đăng nhập hoặc tạo tài khoản mới để tiếp tục"
-            android:textSize="16sp"
-            android:textColor="@color/textSecondary"
-            android:layout_marginBottom="32dp" />
-
-        <RelativeLayout
-            android:id="@+id/tabContainer"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:background="@drawable/bg_auth_tab_container"
-            android:padding="4dp">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:gravity="center_horizontal">
+
+            <!-- ================= HEADER ================= -->
+            <LinearLayout
+                android:id="@+id/authHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:padding="20dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/bg_auth_header">
+
+                <ImageView
+                    android:id="@+id/iv_app_icon"
+                    android:layout_width="200dp"
+                    android:layout_height="120dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/img_login_illustration"
+                    android:alpha="0.92"
+                    android:contentDescription="Login illustration" />
+
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Welcome to PersonalTask"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/textPrimary"
+                    android:layout_marginTop="10dp" />
+
+                <TextView
+                    android:id="@+id/tvSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Đăng nhập hoặc tạo tài khoản mới để tiếp tục"
+                    android:textSize="14sp"
+                    android:textColor="@color/textSecondary"
+                    android:gravity="center"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+            <!-- =============== END HEADER =============== -->
+
+
+            <!-- ================= TABS ================= -->
+            <RelativeLayout
+                android:id="@+id/tabContainer"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_auth_tab_container"
+                android:padding="4dp">
+
+                <View
+                    android:id="@+id/tabHighlight"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_alignParentStart="true"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/bg_auth_tab_highlight"
+                    tools:layout_width="180dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <TextView
+                        android:id="@+id/tabLogin"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="Đăng nhập"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:id="@+id/tabRegister"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="Đăng ký"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/textPrimary" />
+                </LinearLayout>
+            </RelativeLayout>
+            <!-- =============== END TABS =============== -->
+
+
+            <!-- ================= FORMS (THU GỌN) ================= -->
+            <ViewSwitcher
+                android:id="@+id/viewSwitcherAuth"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxHeight="220dp"
+                android:inAnimation="@android:anim/fade_in"
+                android:outAnimation="@android:anim/fade_out">
+
+                <include layout="@layout/feature_auth_login_form" />
+                <include layout="@layout/feature_auth_register_form" />
+
+            </ViewSwitcher>
+            <!-- =============== END FORMS =============== -->
+
+        </LinearLayout>
+    </ScrollView>
+
+
+    <!-- ================= GOOGLE LOGIN FIXED ================= -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp"
+        android:orientation="vertical">
+
+        <!-- OR -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
 
             <View
-                android:id="@+id/tabHighlight"
                 android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:background="@drawable/bg_auth_tab_highlight"
-                android:layout_alignParentStart="true"
-                android:layout_margin="4dp"
-                tools:layout_width="180dp"/>
+                android:layout_height="1dp"
+                android:layout_weight="1"
+                android:background="#D0D0D0" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal"
-                android:weightSum="2">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="OR"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#9E9E9E"
+                android:layout_marginHorizontal="12dp" />
 
-                <TextView
-                    android:id="@+id/tabLogin"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:text="Đăng nhập"
-                    android:textColor="@color/white"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1"
+                android:background="#D0D0D0" />
+        </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tabRegister"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:text="Đăng ký"
-                    android:textColor="@color/textPrimary"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-        </RelativeLayout>
-
-        <ViewSwitcher
-            android:id="@+id/viewSwitcherAuth"
+        <!-- Google Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLoginGoogle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp">
-
-            <include layout="@layout/feature_auth_login_form" />
-
-            <include layout="@layout/feature_auth_register_form" />
-
-        </ViewSwitcher>
-
+            android:layout_height="52dp"
+            android:text="Tiếp tục với Google"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            android:textColor="#202124"
+            app:cornerRadius="12dp"
+            app:icon="@drawable/ic_google"
+            app:iconPadding="12dp"
+            app:iconGravity="textStart"
+            app:iconTint="@null"
+            app:backgroundTint="#FFFFFF"
+            app:strokeWidth="1dp"
+            app:strokeColor="#DADCE0" />
     </LinearLayout>
-</ScrollView>
+
+</LinearLayout>

@@ -50,14 +50,14 @@
             android:exported="true">
 
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
         </activity>
 
         <!-- ========================================================= -->
-        <!--  AUTHENTICATION MODULE                                    -->
+        <!--  AUTHENTICATION MODULE                                   -->
         <!-- ========================================================= -->
         <activity
             android:name=".features.authentication.screens.AuthSplashActivity"
@@ -84,7 +84,7 @@
             android:theme="@style/Theme.PersonalTaskManager" />
 
         <!-- ========================================================= -->
-        <!--  TASK MANAGER MODULE                                    -->
+        <!--  TASK MANAGER MODULE                                     -->
         <!-- ========================================================= -->
         <activity
             android:name=".features.task_manager.screens.TaskManagerMainActivity"
@@ -107,8 +107,13 @@
             android:theme="@style/Theme.TaskManager" />
 
         <!-- ========================================================= -->
-        <!--  CALENDAR EVENTS MODULE                                   -->
+        <!--  CALENDAR EVENTS MODULE                                  -->
         <!-- ========================================================= -->
+        <!--
+            CalendarFragment được load qua NavigationActivity
+            → KHÔNG cần khai báo Fragment ở Manifest
+            → Activity này chỉ giữ để mở rộng sau (Month / Week / Day)
+        -->
         <activity
             android:name=".features.calendar_events.screens.CalendarMonthActivity"
             android:exported="false" />

@@ -10,7 +10,6 @@ public class NotionBlockParser {
 
     public static List<NotionBlock> fromJson(String json) {
         List<NotionBlock> list = new ArrayList<>();
-
         if (json == null || json.isEmpty()) return list;
 
         try {
@@ -26,15 +25,16 @@ public class NotionBlockParser {
                         o.optBoolean("isChecked", false)
                 );
 
-                // ⭐ THÊM 2 FIELD FILE ⭐
                 block.fileUri = o.optString("fileUri", null);
                 block.fileName = o.optString("fileName", null);
+
+                // ✅ TODO deadline
+                block.deadline = o.optLong("deadline", 0);
 
                 list.add(block);
             }
 
         } catch (Exception ignored) {}
-
         return list;
     }
 
@@ -43,16 +43,18 @@ public class NotionBlockParser {
 
         try {
             for (NotionBlock b : blocks) {
-
                 JSONObject o = new JSONObject();
+
                 o.put("id", b.id);
                 o.put("type", b.type.name());
                 o.put("text", b.text);
                 o.put("isChecked", b.isChecked);
 
-                // ⭐ THÊM 2 FIELD FILE ⭐
                 o.put("fileUri", b.fileUri == null ? JSONObject.NULL : b.fileUri);
                 o.put("fileName", b.fileName == null ? JSONObject.NULL : b.fileName);
+
+                // ✅ TODO deadline
+                o.put("deadline", b.deadline);
 
                 arr.put(o);
             }

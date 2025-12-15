@@ -2,6 +2,7 @@ package com.example.personaltaskmanager.features.task_manager.screens;
 
 import android.content.res.ColorStateList;
 import android.graphics.Paint;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -72,18 +73,26 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
         Task task = taskList.get(position);
 
-        // Title + Deadline
+        // ===== TITLE + DEADLINE =====
         holder.textTitle.setText(task.getTitle());
         holder.textDeadline.setText(DateUtils.formatDate(task.getDeadline()));
 
-        // NGĂN LẶP LISTENER
+        // ===== IMAGE (FIX CHÍNH) =====
+        if (task.getImageUri() != null && !task.getImageUri().isEmpty()) {
+            holder.imgTask.setImageURI(Uri.parse(task.getImageUri()));
+        } else {
+            holder.imgTask.setImageResource(
+                    R.drawable.feature_task_manager_ic_image_placeholder
+            );
+        }
+
+        // ===== CHECKBOX =====
         holder.checkboxTask.setOnCheckedChangeListener(null);
         holder.checkboxTask.setChecked(task.isCompleted());
 
-        // Style khi completed
         applyCompletedStyle(holder, task.isCompleted());
 
-        // CLICK ITEM → mở Workspace (thông qua callback của TaskListActivity)
+        // CLICK ITEM
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onTaskClick(task);
         });
@@ -93,7 +102,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             if (deleteListener != null) deleteListener.onTaskDelete(task);
         });
 
-        // TOGGLE CHECKBOX
+        // TOGGLE
         holder.checkboxTask.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (toggleListener != null) toggleListener.onTaskToggle(task, isChecked);
         });
