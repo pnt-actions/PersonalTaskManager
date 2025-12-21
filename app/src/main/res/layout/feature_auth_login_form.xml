@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="Tên đăng nhập"
+        android:hint="Email"
         app:startIconDrawable="@drawable/ic_person"
         app:startIconTint="@color/blue_700"
         app:boxStrokeColor="@color/blue_700"
@@ -19,6 +19,7 @@
             android:id="@+id/et_username"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="textEmailAddress"
             android:textColor="@color/textPrimary" />
     </com.google.android.material.textfield.TextInputLayout>
 

@@ -27,4 +27,15 @@
         android:layout_height="wrap_content"
         android:text="📅"
         android:padding="6dp"/>
+
+    <!-- menu button -->
+    <TextView
+        android:id="@+id/btn_more"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="⋮"
+        android:textSize="20sp"
+        android:padding="8dp"
+        android:clickable="true"
+        android:focusable="true" />
 </LinearLayout>

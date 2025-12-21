@@ -4,6 +4,7 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import com.example.personaltaskmanager.features.authentication.data.local.entity.UserEntity;
 
@@ -53,4 +54,10 @@ public interface UserDao {
     // -----------------------------
     @Query("SELECT * FROM users")
     List<UserEntity> getAllUsers();
+
+    /**
+     * Cập nhật thông tin user.
+     */
+    @Update
+    void updateUser(UserEntity user);
 }

@@ -18,6 +18,7 @@
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
 
     <application
+        android:name=".PersonalTaskManagerApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -122,6 +123,14 @@
         <!--  ADMIN MODULE (Fragment -> không cần khai báo)           -->
         <!-- ========================================================= -->
         <!-- AdminFragment KHÔNG cần thêm ở đây                       -->
+
+        <!-- ========================================================= -->
+        <!--  PROFILE SETTINGS MODULE                                 -->
+        <!-- ========================================================= -->
+        <activity
+            android:name=".features.profile_settings.screens.ProfileSettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.PersonalTaskManager" />
 
     </application>
 

@@ -33,14 +33,13 @@ public class AuthViewModel extends ViewModel {
         forgotUseCase = new ForgotPasswordUseCase();
     }
 
-    // ---- CHỈ SỬA HÀM NÀY ----
-    public User login(String username, String password) {
-        return loginUseCase.execute(username, password);
+    // ---- CẬP NHẬT CHO FIREBASE ASYNC ----
+    public void login(String email, String password, AuthRepository.AuthCallback callback) {
+        loginUseCase.execute(email, password, callback);
     }
-    // -------------------------
 
-    public boolean register(User user) {
-        return registerUseCase.execute(user);
+    public void register(String username, String email, String password, AuthRepository.AuthCallback callback) {
+        registerUseCase.execute(username, email, password, callback);
     }
 
     public void logout() {

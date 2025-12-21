@@ -56,4 +56,9 @@ public class TaskRepository {
     public LiveData<Task> getTaskById(int taskId) {
         return dao.getTaskById(taskId);
     }
+
+    // Lấy task đồng bộ (chạy trong background thread)
+    public Task getTaskByIdSync(int taskId) {
+        return dao.getTaskByIdSync(taskId);
+    }
 }

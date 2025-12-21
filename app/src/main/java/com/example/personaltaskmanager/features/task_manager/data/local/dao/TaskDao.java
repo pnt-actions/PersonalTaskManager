@@ -25,6 +25,10 @@ public interface TaskDao {
     @Query("SELECT * FROM tasks WHERE id = :taskId LIMIT 1")
     LiveData<Task> getTaskById(int taskId);
 
+    // Lấy task đồng bộ (dùng trong background thread)
+    @Query("SELECT * FROM tasks WHERE id = :taskId LIMIT 1")
+    Task getTaskByIdSync(int taskId);
+
     @Insert
     long insertTask(Task task);
 

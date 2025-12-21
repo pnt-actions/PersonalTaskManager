@@ -77,11 +77,6 @@ public class TaskManagerMainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, TaskDetailActivity.class);
             startActivity(intent);
         });
-
-        findViewById(R.id.btn_add_small).setOnClickListener(v -> {
-            Intent intent = new Intent(this, TaskDetailActivity.class);
-            startActivity(intent);
-        });
     }
 
     private void setupRecyclerView() {

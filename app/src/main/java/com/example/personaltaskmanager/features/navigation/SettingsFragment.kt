@@ -40,7 +40,8 @@ class SettingsFragment : Fragment() {
             R.drawable.feature_task_manager_ic_image_placeholder, // Dùng icon Placeholder tạm thời
             "Quản lý Hồ sơ",
             "Cập nhật thông tin cá nhân và mật khẩu") {
-            // TODO: Thay thế bằng Intent chính xác đến Profile Settings
+            val intent = Intent(requireContext(), com.example.personaltaskmanager.features.profile_settings.screens.ProfileSettingsActivity::class.java)
+            startActivity(intent)
         }
 
         setupSettingItem(view, R.id.setting_logout,
@@ -64,7 +65,7 @@ class SettingsFragment : Fragment() {
             android.R.drawable.ic_menu_compass, // Icon la bàn tạm
             "Ngôn ngữ",
             "Tiếng Việt (Mặc định)") {
-            // TODO: Mở màn hình chọn Ngôn ngữ
+            showLanguageDialog()
         }
     }
 
@@ -103,5 +104,28 @@ class SettingsFragment : Fragment() {
             container.findViewById<TextView>(R.id.tv_subtitle)?.text = subtitle
             container.setOnClickListener { onClick() }
         }
+    }
+
+    private fun showLanguageDialog() {
+        val languages = arrayOf("Tiếng Việt", "English", "中文", "日本語")
+        val currentLanguage = "Tiếng Việt" // Có thể lấy từ SharedPreferences
+
+        android.app.AlertDialog.Builder(requireContext())
+            .setTitle("Chọn ngôn ngữ")
+            .setSingleChoiceItems(languages, languages.indexOf(currentLanguage)) { dialog, which ->
+                // Lưu ngôn ngữ đã chọn vào SharedPreferences
+                val prefs = requireContext().getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                prefs.edit().putString("language", languages[which]).apply()
+                
+                android.widget.Toast.makeText(
+                    requireContext(),
+                    "Đã chọn: ${languages[which]}",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+                
+                dialog.dismiss()
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
     }
 }

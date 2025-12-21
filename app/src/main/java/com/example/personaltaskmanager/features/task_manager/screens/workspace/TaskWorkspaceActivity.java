@@ -104,10 +104,79 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
         adapter = new NotionBlockAdapter(blocks);
         rvWorkspace.setAdapter(adapter);
 
+        // Setup file menu listener
+        adapter.setFileMenuListener((block, position, anchor) -> {
+            TaskFileActionBottomSheet sheet = new TaskFileActionBottomSheet(block, new TaskFileActionBottomSheet.Listener() {
+                @Override
+                public void onDelete(NotionBlock b) {
+                    blocks.remove(b);
+                    adapter.notifyItemRemoved(position);
+                    save();
+                }
+
+                @Override
+                public void onDuplicate(NotionBlock b) {
+                    NotionBlock copy = new NotionBlock(
+                            java.util.UUID.randomUUID().toString(),
+                            b.type,
+                            b.text,
+                            b.isChecked
+                    );
+                    copy.fileUri = b.fileUri;
+                    copy.fileName = b.fileName;
+                    copy.deadline = b.deadline;
+                    blocks.add(position + 1, copy);
+                    adapter.notifyItemInserted(position + 1);
+                    save();
+                }
+
+                @Override
+                public void onMove(NotionBlock b) {
+                    MoveBlockDialog dialog = new MoveBlockDialog(b, taskId, vm, targetTaskId -> {
+                        moveBlockToTask(b, targetTaskId);
+                    });
+                    dialog.show(getSupportFragmentManager(), "MoveBlockDialog");
+                }
+            });
+            sheet.show(getSupportFragmentManager(), "FileActions");
+        });
+
         Vibrator vib = (Vibrator) getSystemService(VIBRATOR_SERVICE);
         ItemTouchHelper helper =
                 new ItemTouchHelper(new BlockDragCallback(blocks, adapter, vib, this));
         helper.attachToRecyclerView(rvWorkspace);
+    }
+
+    private void moveBlockToTask(NotionBlock block, int targetTaskId) {
+        // Xóa block khỏi task hiện tại
+        blocks.remove(block);
+        adapter.notifyDataSetChanged();
+        save();
+
+        // Thêm block vào task đích - chạy trong background thread để tránh vòng lặp
+        com.example.personaltaskmanager.features.task_manager.data.local.db.AppDatabase.databaseWriteExecutor.execute(() -> {
+            try {
+                com.example.personaltaskmanager.features.task_manager.data.repository.TaskRepository repo = 
+                    new com.example.personaltaskmanager.features.task_manager.data.repository.TaskRepository(this);
+                
+                Task targetTask = repo.getTaskByIdSync(targetTaskId);
+                if (targetTask != null) {
+                    List<NotionBlock> targetBlocks = NotionBlockParser.fromJson(targetTask.getNotesJson());
+                    targetBlocks.add(block);
+                    targetTask.setNotesJson(NotionBlockParser.toJson(targetBlocks));
+                    repo.updateTask(targetTask);
+                    
+                    // Hiển thị toast trên main thread
+                    runOnUiThread(() -> {
+                        android.widget.Toast.makeText(this, "Đã di chuyển block", android.widget.Toast.LENGTH_SHORT).show();
+                    });
+                }
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    android.widget.Toast.makeText(this, "Lỗi khi di chuyển block", android.widget.Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
     }
 
     private void applyTaskInfo() {

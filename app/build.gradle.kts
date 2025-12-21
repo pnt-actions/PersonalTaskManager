@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -61,6 +62,11 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel:2.8.0")
     implementation("androidx.lifecycle:lifecycle-livedata:2.8.0")
     implementation("androidx.lifecycle:lifecycle-runtime:2.8.0")
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
 
     // ===========================================
     // Compose — TƯƠNG THÍCH 100%
