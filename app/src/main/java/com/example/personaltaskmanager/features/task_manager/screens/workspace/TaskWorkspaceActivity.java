@@ -50,6 +50,7 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
     private TaskViewModel vm;
     private Task task;
     private int taskId;
+    private String taskUuid;
 
     private static final int REQ_PICK_FILE = 2001;
     private static final int REQ_EDIT_TASK = 3001;
@@ -61,6 +62,11 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
 
         vm = new ViewModelProvider(this).get(TaskViewModel.class);
         taskId = getIntent().getIntExtra("task_id", -1);
+        taskUuid = getIntent().getStringExtra("task_uuid");
+
+        // Reset dữ liệu
+        task = null;
+        blocks.clear();
 
         initViews();
         initRecycler();
@@ -73,12 +79,48 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
      * Khi Task thay đổi → load lại thông tin + block
      */
     private void observeTask() {
-        vm.getTaskById(taskId).observe(this, t -> {
-            if (t == null) return;
-            task = t;
+        // Ưu tiên dùng UUID nếu có, nếu không thì dùng ID
+        androidx.lifecycle.LiveData<Task> taskLiveData;
+        if (taskUuid != null && !taskUuid.isEmpty()) {
+            taskLiveData = vm.getTaskByUuid(taskUuid);
+        } else if (taskId != -1) {
+            taskLiveData = vm.getTaskById(taskId);
+        } else {
+            finish();
+            return;
+        }
+
+        taskLiveData.observe(this, t -> {
+            // Verify bằng cả ID và UUID để đảm bảo chính xác
+            boolean isValid = false;
+            if (t != null) {
+                if (taskUuid != null && !taskUuid.isEmpty()) {
+                    isValid = taskUuid.equals(t.getUuid());
+                } else {
+                    isValid = t.getId() == taskId;
+                }
+            }
+
+            if (isValid) {
+                task = t;
+                taskId = t.getId(); // Update taskId từ task loaded
+                applyTaskInfo();
+                loadBlocks();
+            } else if (t == null) {
+                // Task không tồn tại
+                finish();
+            }
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Đảm bảo update lại khi vào lại activity
+        if (task != null && task.getId() == taskId) {
             applyTaskInfo();
             loadBlocks();
-        });
+        }
     }
 
     private void initViews() {
@@ -277,6 +319,9 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
     private void openTaskDetail() {
         Intent i = new Intent(this, TaskDetailActivity.class);
         i.putExtra("task_id", taskId);
+        if (task != null && task.getUuid() != null) {
+            i.putExtra("task_uuid", task.getUuid());
+        }
         startActivityForResult(i, REQ_EDIT_TASK);
     }
 

@@ -45,15 +45,33 @@ public class HabitRepository {
         return habitDao.getHabitById(habitId);
     }
 
+    public LiveData<Habit> getHabitByUuid(String uuid) {
+        return habitDao.getHabitByUuid(uuid);
+    }
+
+    public Habit getHabitByUuidSync(String uuid) {
+        return habitDao.getHabitByUuidSync(uuid);
+    }
+
     public void addHabit(Habit habit) {
         executor.execute(() -> {
             habit.userId = getCurrentUserId();
+            // Đảm bảo UUID luôn có (nếu chưa có thì generate)
+            if (habit.uuid == null || habit.uuid.isEmpty()) {
+                habit.uuid = java.util.UUID.randomUUID().toString();
+            }
             habitDao.insertHabit(habit);
         });
     }
 
     public void updateHabit(Habit habit) {
-        executor.execute(() -> habitDao.updateHabit(habit));
+        executor.execute(() -> {
+            // Đảm bảo UUID luôn có (nếu chưa có thì generate)
+            if (habit.uuid == null || habit.uuid.isEmpty()) {
+                habit.uuid = java.util.UUID.randomUUID().toString();
+            }
+            habitDao.updateHabit(habit);
+        });
     }
 
     public void deleteHabit(Habit habit) {

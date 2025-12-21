@@ -86,6 +86,7 @@ public class TaskManagerMainActivity extends AppCompatActivity {
                 task -> {
                     Intent intent = new Intent(TaskManagerMainActivity.this, TaskDetailActivity.class);
                     intent.putExtra("task_id", task.getId());
+                    intent.putExtra("task_uuid", task.getUuid() != null ? task.getUuid() : "");
                     startActivity(intent);
                 },
                 this::showDeleteConfirmDialog,

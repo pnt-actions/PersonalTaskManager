@@ -29,6 +29,10 @@ public class HabitViewModel extends AndroidViewModel {
         return repo.getHabitById(habitId);
     }
 
+    public LiveData<Habit> getHabitByUuid(String uuid) {
+        return repo.getHabitByUuid(uuid);
+    }
+
     public void addHabit(String title, String description, String color, String icon) {
         Habit habit = new Habit(
             title,
@@ -38,6 +42,23 @@ public class HabitViewModel extends AndroidViewModel {
             icon,
             0 // userId sẽ được set trong repository
         );
+        repo.addHabit(habit);
+    }
+
+    public void addHabit(String title, String description, String color, String icon,
+                         long startDate, long endDate, String targetType, int durationMinutes) {
+        Habit habit = new Habit(
+            title,
+            description,
+            System.currentTimeMillis(),
+            color,
+            icon,
+            0 // userId sẽ được set trong repository
+        );
+        habit.startDate = startDate;
+        habit.endDate = endDate;
+        habit.targetType = targetType;
+        habit.durationMinutes = durationMinutes;
         repo.addHabit(habit);
     }
 

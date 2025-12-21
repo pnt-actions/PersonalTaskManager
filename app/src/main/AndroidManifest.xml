@@ -108,6 +108,14 @@
             android:theme="@style/Theme.TaskManager" />
 
         <!-- ========================================================= -->
+        <!--  HABIT TRACKER MODULE                                    -->
+        <!-- ========================================================= -->
+        <activity
+            android:name=".features.habit_tracker.screens.HabitDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.PersonalTaskManager" />
+
+        <!-- ========================================================= -->
         <!--  CALENDAR EVENTS MODULE                                  -->
         <!-- ========================================================= -->
         <!--

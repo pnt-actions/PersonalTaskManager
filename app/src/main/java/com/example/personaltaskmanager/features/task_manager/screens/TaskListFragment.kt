@@ -146,6 +146,7 @@ class TaskListFragment : Fragment() {
     private fun openEditTask(task: Task) {
         val intent = Intent(requireContext(), TaskWorkspaceActivity::class.java)
         intent.putExtra("task_id", task.id)
+        intent.putExtra("task_uuid", task.uuid ?: "")
         startActivity(intent)
     }
 }

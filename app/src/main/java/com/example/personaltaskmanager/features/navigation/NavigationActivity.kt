@@ -1,16 +1,23 @@
 package com.example.personaltaskmanager.features.navigation
 
+import android.app.AlertDialog
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.example.personaltaskmanager.R
 import com.example.personaltaskmanager.features.admin.screens.AdminFragment
 import com.example.personaltaskmanager.features.calendar_events.screens.CalendarFragment
 import com.example.personaltaskmanager.features.navigation.SettingsFragment
 import com.example.personaltaskmanager.features.task_manager.screens.TaskListFragment
 import com.example.personaltaskmanager.features.navigation.HabitFragment
+import com.example.personaltaskmanager.features.habit_tracker.data.model.Habit
+import com.example.personaltaskmanager.features.habit_tracker.data.model.HabitCompletion
+import com.example.personaltaskmanager.features.habit_tracker.viewmodel.HabitViewModel
+import java.util.Calendar
 
 class NavigationActivity : AppCompatActivity() {
 
@@ -55,7 +62,72 @@ class NavigationActivity : AppCompatActivity() {
             navigateAdminTo(AdminNavItem.MANAGE)
         } else {
             navigateTo(NavItem.TASKS)
+            // Kiểm tra và hiển thị thông báo về target chưa hoàn thành
+            checkIncompleteTargets()
         }
+    }
+
+    private fun checkIncompleteTargets() {
+        val habitViewModel = ViewModelProvider(this)[HabitViewModel::class.java]
+        
+        habitViewModel.getAllHabits().observe(this) { habits ->
+            if (habits.isNullOrEmpty()) return@observe
+
+            val today = System.currentTimeMillis()
+            val dayInMillis = 86400000L
+            val dayStart = (today / dayInMillis) * dayInMillis
+
+            val incompleteHabits = mutableListOf<String>()
+
+            // Lọc các habits cần kiểm tra (có target và hôm nay trong khoảng thời gian)
+            val habitsToCheck = habits.filter { habit ->
+                habit.startDate > 0 && dayStart >= habit.startDate && 
+                dayStart <= (if (habit.endDate > 0) habit.endDate else today)
+            }
+
+            if (habitsToCheck.isEmpty()) return@observe
+
+            // Đếm số lượng observers đã hoàn thành
+            var checkedCount = 0
+            val totalToCheck = habitsToCheck.size
+
+            for (habit in habitsToCheck) {
+                habitViewModel.getCompletionsByHabit(habit.id).observe(this) { completions ->
+                    checkedCount++
+                    
+                    var completedToday = false
+                    if (completions != null) {
+                        for (completion in completions) {
+                            val completionDay = (completion.completionDate / dayInMillis) * dayInMillis
+                            if (completionDay == dayStart) {
+                                completedToday = true
+                                break
+                            }
+                        }
+                    }
+
+                    if (!completedToday) {
+                        incompleteHabits.add(habit.title)
+                    }
+
+                    // Khi đã kiểm tra xong tất cả, hiển thị dialog nếu có target chưa hoàn thành
+                    if (checkedCount == totalToCheck && incompleteHabits.isNotEmpty()) {
+                        showIncompleteTargetsDialog(incompleteHabits)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun showIncompleteTargetsDialog(habits: List<String>) {
+        val message = "Bạn có ${habits.size} target chưa hoàn thành hôm nay:\n\n" +
+                habits.joinToString("\n") { "• $it" }
+
+        AlertDialog.Builder(this)
+            .setTitle("Nhắc nhở Target")
+            .setMessage(message)
+            .setPositiveButton("Đã biết", null)
+            .show()
     }
 
     // --------------------- USER NAV -------------------------

@@ -37,11 +37,21 @@ public class TaskRepository {
 
     public void addTask(Task task) {
         task.setUserId(getCurrentUserId());
+        // Đảm bảo UUID luôn có (nếu chưa có thì generate)
+        if (task.getUuid() == null || task.getUuid().isEmpty()) {
+            task.setUuid(java.util.UUID.randomUUID().toString());
+        }
         AppDatabase.databaseWriteExecutor.execute(() -> dao.insertTask(task));
     }
 
     public void updateTask(Task task) {
-        AppDatabase.databaseWriteExecutor.execute(() -> dao.updateTask(task));
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            // Đảm bảo UUID luôn có (nếu chưa có thì generate)
+            if (task.getUuid() == null || task.getUuid().isEmpty()) {
+                task.setUuid(java.util.UUID.randomUUID().toString());
+            }
+            dao.updateTask(task);
+        });
     }
 
     public void deleteTask(Task task) {
@@ -60,5 +70,13 @@ public class TaskRepository {
     // Lấy task đồng bộ (chạy trong background thread)
     public Task getTaskByIdSync(int taskId) {
         return dao.getTaskByIdSync(taskId);
+    }
+
+    public LiveData<Task> getTaskByUuid(String uuid) {
+        return dao.getTaskByUuid(uuid);
+    }
+
+    public Task getTaskByUuidSync(String uuid) {
+        return dao.getTaskByUuidSync(uuid);
     }
 }

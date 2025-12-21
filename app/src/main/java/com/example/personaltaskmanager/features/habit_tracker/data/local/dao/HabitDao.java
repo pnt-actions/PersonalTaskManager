@@ -29,6 +29,14 @@ public interface HabitDao {
     @Query("SELECT * FROM habits WHERE id = :habitId LIMIT 1")
     Habit getHabitByIdSync(int habitId);
 
+    // Lấy habit theo UUID (đảm bảo chính xác, không nhầm lẫn)
+    @Query("SELECT * FROM habits WHERE uuid = :uuid LIMIT 1")
+    LiveData<Habit> getHabitByUuid(String uuid);
+
+    // Lấy habit theo UUID đồng bộ
+    @Query("SELECT * FROM habits WHERE uuid = :uuid LIMIT 1")
+    Habit getHabitByUuidSync(String uuid);
+
     @Insert
     long insertHabit(Habit habit);
 

@@ -14,6 +14,9 @@ public class Task {
     @PrimaryKey(autoGenerate = true)
     public int id;
 
+    /** UUID v4 duy nhất cho mỗi task - đảm bảo không nhầm lẫn */
+    public String uuid;
+
     public String title;
     public String description;
     public long createdAt;
@@ -51,6 +54,8 @@ public class Task {
         this.userId = userId;
         this.isCompleted = false;
         this.imageUri = null; // ✅
+        // Generate UUID v4
+        this.uuid = java.util.UUID.randomUUID().toString();
     }
 
     // ==== CONSTRUCTOR PHỤ — KHÔNG CHO ROOM DÙNG ====
@@ -69,6 +74,14 @@ public class Task {
         this.userId = 0;
         this.isCompleted = false;
         this.imageUri = null; // ✅
+        // Generate UUID v4
+        this.uuid = java.util.UUID.randomUUID().toString();
+    }
+
+    /** Constructor rỗng cho Room */
+    public Task() {
+        // Generate UUID khi tạo mới
+        this.uuid = java.util.UUID.randomUUID().toString();
     }
 
     // ==== GETTER ====
@@ -82,6 +95,7 @@ public class Task {
     public String getTablesJson() { return tablesJson; }
     public int getUserId() { return userId; }
     public String getImageUri() { return imageUri; } // ✅
+    public String getUuid() { return uuid; }
 
     // ==== SETTER ====
     public void setTitle(String title) { this.title = title; }
@@ -92,4 +106,7 @@ public class Task {
     public void setTablesJson(String tablesJson) { this.tablesJson = tablesJson; }
     public void setUserId(int userId) { this.userId = userId; }
     public void setImageUri(String imageUri) { this.imageUri = imageUri; } // ✅
+
+    // ==== SETTER CHO UUID ====
+    public void setUuid(String uuid) { this.uuid = uuid; }
 }

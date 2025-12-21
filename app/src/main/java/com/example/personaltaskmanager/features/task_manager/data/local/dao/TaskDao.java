@@ -29,6 +29,14 @@ public interface TaskDao {
     @Query("SELECT * FROM tasks WHERE id = :taskId LIMIT 1")
     Task getTaskByIdSync(int taskId);
 
+    // Lấy task theo UUID (đảm bảo chính xác, không nhầm lẫn)
+    @Query("SELECT * FROM tasks WHERE uuid = :uuid LIMIT 1")
+    LiveData<Task> getTaskByUuid(String uuid);
+
+    // Lấy task theo UUID đồng bộ
+    @Query("SELECT * FROM tasks WHERE uuid = :uuid LIMIT 1")
+    Task getTaskByUuidSync(String uuid);
+
     @Insert
     long insertTask(Task task);
 

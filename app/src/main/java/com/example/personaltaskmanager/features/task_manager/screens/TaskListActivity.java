@@ -50,6 +50,7 @@ public class TaskListActivity extends AppCompatActivity {
                 task -> {
                     Intent intent = new Intent(TaskListActivity.this, TaskWorkspaceActivity.class);
                     intent.putExtra("task_id", task.getId());
+                    intent.putExtra("task_uuid", task.getUuid() != null ? task.getUuid() : "");
                     startActivity(intent);
                 },
                 task -> viewModel.deleteTask(task),

@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
 
 @Database(
     entities = {Habit.class, HabitCompletion.class},
-    version = 1,
+    version = 3,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {

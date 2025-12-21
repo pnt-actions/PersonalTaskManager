@@ -69,6 +69,10 @@ class TaskViewModel(app: Application) : AndroidViewModel(app) {
         return repo.getTaskById(taskId)
     }
 
+    fun getTaskByUuid(uuid: String): LiveData<Task> {
+        return repo.getTaskByUuid(uuid)
+    }
+
     fun toggleCompleted(task: Task, done: Boolean) {
         task.isCompleted = done
         repo.updateTask(task)

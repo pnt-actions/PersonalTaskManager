@@ -43,6 +43,7 @@ public class TaskDetailActivity extends AppCompatActivity {
     private TaskViewModel viewModel;
 
     private int taskId = -1;
+    private String taskUuid;
     private Task currentTask = null;
 
     private long selectedDeadline = System.currentTimeMillis();
@@ -55,6 +56,11 @@ public class TaskDetailActivity extends AppCompatActivity {
 
         setLightStatusBar();
         initViews();
+
+        // Reset dữ liệu
+        currentTask = null;
+        taskId = -1;
+        taskUuid = null;
 
         viewModel = new ViewModelProvider(this).get(TaskViewModel.class);
 
@@ -76,26 +82,70 @@ public class TaskDetailActivity extends AppCompatActivity {
     /** Load dữ liệu nếu đang sửa task */
     private void loadTaskIfEditMode() {
         taskId = getIntent().getIntExtra("task_id", -1);
+        taskUuid = getIntent().getStringExtra("task_uuid");
 
-        if (taskId != -1) {
-            viewModel.getTaskById(taskId).observe(this, task -> {
-                if (task == null) return;
+        if (taskId != -1 || (taskUuid != null && !taskUuid.isEmpty())) {
+            // Ưu tiên dùng UUID nếu có, nếu không thì dùng ID
+            androidx.lifecycle.LiveData<Task> taskLiveData;
+            if (taskUuid != null && !taskUuid.isEmpty()) {
+                taskLiveData = viewModel.getTaskByUuid(taskUuid);
+            } else {
+                taskLiveData = viewModel.getTaskById(taskId);
+            }
 
-                currentTask = task;
-
-                edtTitle.setText(task.getTitle());
-                edtDescription.setText(task.getDescription());
-
-                selectedDeadline = task.getDeadline();
-                edtDate.setText(DateUtils.formatDate(selectedDeadline));
-
-                if (task.getImageUri() != null) {
-                    selectedImageUri = task.getImageUri();
-                    imgTask.setImageURI(Uri.parse(task.getImageUri()));
+            taskLiveData.observe(this, task -> {
+                // Verify bằng cả ID và UUID để đảm bảo chính xác
+                boolean isValid = false;
+                if (task != null) {
+                    if (taskUuid != null && !taskUuid.isEmpty()) {
+                        isValid = taskUuid.equals(task.getUuid());
+                    } else {
+                        isValid = task.getId() == taskId;
+                    }
                 }
 
-                btnSave.setText("Cập nhật công việc");
+                if (isValid) {
+                    currentTask = task;
+                    taskId = task.getId(); // Update taskId từ task loaded
+                    updateTaskInfo();
+                } else if (task == null) {
+                    // Task không tồn tại
+                    finish();
+                }
             });
+        }
+    }
+
+    private void updateTaskInfo() {
+        if (currentTask == null) return;
+
+        edtTitle.setText(currentTask.getTitle());
+        edtDescription.setText(currentTask.getDescription());
+
+        selectedDeadline = currentTask.getDeadline();
+        edtDate.setText(DateUtils.formatDate(selectedDeadline));
+
+        if (currentTask.getImageUri() != null && !currentTask.getImageUri().isEmpty()) {
+            selectedImageUri = currentTask.getImageUri();
+            try {
+                imgTask.setImageURI(Uri.parse(currentTask.getImageUri()));
+                imgTask.setVisibility(View.VISIBLE);
+            } catch (Exception e) {
+                imgTask.setVisibility(View.GONE);
+            }
+        } else {
+            imgTask.setVisibility(View.GONE);
+        }
+
+        btnSave.setText("Cập nhật công việc");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Đảm bảo update lại khi vào lại activity
+        if (currentTask != null && currentTask.getId() == taskId) {
+            updateTaskInfo();
         }
     }
 
