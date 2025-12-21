@@ -99,4 +99,12 @@ public interface TaskDao {
 
     @Query("SELECT COUNT(*) FROM tasks WHERE userId = :userId AND isCompleted = 1 AND createdAt >= :startDate AND createdAt <= :endDate")
     LiveData<Integer> getCompletedTasksCountByDate(int userId, long startDate, long endDate);
+
+    // ===== STATISTICS BY PRIORITY =====
+    @Query("SELECT COUNT(*) FROM tasks WHERE userId = :userId AND priority = :priority AND isCompleted = 1")
+    LiveData<Integer> getCompletedTasksCountByPriority(int userId, String priority);
+
+    // ===== STATISTICS BY TAG =====
+    @Query("SELECT * FROM tasks WHERE userId = :userId AND isCompleted = 1")
+    LiveData<List<Task>> getCompletedTasks(int userId);
 }

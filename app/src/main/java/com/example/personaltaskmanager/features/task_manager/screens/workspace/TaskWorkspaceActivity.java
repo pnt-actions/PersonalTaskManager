@@ -2,11 +2,15 @@ package com.example.personaltaskmanager.features.task_manager.screens.workspace;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.provider.OpenableColumns;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowInsetsController;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -60,6 +64,8 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
         super.onCreate(savedInstanceState);
         setContentView(R.layout.feature_task_manager_workspace);
 
+        setLightStatusBar();
+
         vm = new ViewModelProvider(this).get(TaskViewModel.class);
         taskId = getIntent().getIntExtra("task_id", -1);
         taskUuid = getIntent().getStringExtra("task_uuid");
@@ -72,6 +78,26 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
         initRecycler();
         observeTask();
         setupActions();
+    }
+
+    /** Light status bar (giống create task) */
+    private void setLightStatusBar() {
+        Window window = getWindow();
+        window.setStatusBarColor(Color.WHITE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowInsetsController controller = window.getInsetsController();
+            if (controller != null) {
+                controller.setSystemBarsAppearance(
+                    WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+                    WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                );
+            }
+        } else {
+            window.getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            );
+        }
     }
 
     /**

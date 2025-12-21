@@ -1,5 +1,6 @@
 package com.example.personaltaskmanager.features.dashboard.screens
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,8 +11,18 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.personaltaskmanager.R
 import com.example.personaltaskmanager.features.habit_tracker.viewmodel.HabitViewModel
 import com.example.personaltaskmanager.features.task_manager.viewmodel.TaskViewModel
+import androidx.gridlayout.widget.GridLayout
+import androidx.gridlayout.widget.GridLayout.LayoutParams
+import com.github.mikephil.charting.charts.BarChart
+import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.charts.PieChart
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.formatter.ValueFormatter
+import com.example.personaltaskmanager.features.task_manager.data.model.Task
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 class DashboardFragment : Fragment() {
@@ -26,6 +37,13 @@ class DashboardFragment : Fragment() {
     private lateinit var tvCompletedThisMonth: TextView
     private lateinit var tvHabitCompletionRate: TextView
     private lateinit var tvLongestStreak: TextView
+    
+    private lateinit var chartWeekly: LineChart
+    private lateinit var chartMonthly: BarChart
+    private lateinit var chartHabitStreak: LineChart
+    private lateinit var gridHeatmap: GridLayout
+    private lateinit var chartPriority: PieChart
+    private lateinit var chartTags: BarChart
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -53,6 +71,86 @@ class DashboardFragment : Fragment() {
         tvCompletedThisMonth = view.findViewById(R.id.tv_completed_this_month)
         tvHabitCompletionRate = view.findViewById(R.id.tv_habit_completion_rate)
         tvLongestStreak = view.findViewById(R.id.tv_longest_streak)
+        
+        chartWeekly = view.findViewById(R.id.chart_weekly)
+        chartMonthly = view.findViewById(R.id.chart_monthly)
+        chartHabitStreak = view.findViewById(R.id.chart_habit_streak)
+        gridHeatmap = view.findViewById(R.id.grid_heatmap)
+        chartPriority = view.findViewById(R.id.chart_priority)
+        chartTags = view.findViewById(R.id.chart_tags)
+        
+        setupCharts()
+    }
+    
+    private fun setupCharts() {
+        setupWeeklyChart()
+        setupMonthlyChart()
+        setupHabitStreakChart()
+        setupPriorityChart()
+        setupTagsChart()
+    }
+    
+    private fun setupWeeklyChart() {
+        chartWeekly.description.isEnabled = false
+        chartWeekly.setTouchEnabled(true)
+        chartWeekly.setDragEnabled(true)
+        chartWeekly.setScaleEnabled(false)
+        chartWeekly.setPinchZoom(false)
+        chartWeekly.legend.isEnabled = false
+        
+        val xAxis = chartWeekly.xAxis
+        xAxis.position = XAxis.XAxisPosition.BOTTOM
+        xAxis.textColor = Color.BLACK
+        xAxis.setDrawGridLines(false)
+        
+        val leftAxis = chartWeekly.axisLeft
+        leftAxis.textColor = Color.BLACK
+        leftAxis.setDrawGridLines(true)
+        leftAxis.axisMinimum = 0f
+        
+        chartWeekly.axisRight.isEnabled = false
+    }
+    
+    private fun setupMonthlyChart() {
+        chartMonthly.description.isEnabled = false
+        chartMonthly.setTouchEnabled(true)
+        chartMonthly.setDragEnabled(true)
+        chartMonthly.setScaleEnabled(false)
+        chartMonthly.setPinchZoom(false)
+        chartMonthly.legend.isEnabled = false
+        
+        val xAxis = chartMonthly.xAxis
+        xAxis.position = XAxis.XAxisPosition.BOTTOM
+        xAxis.textColor = Color.BLACK
+        xAxis.setDrawGridLines(false)
+        
+        val leftAxis = chartMonthly.axisLeft
+        leftAxis.textColor = Color.BLACK
+        leftAxis.setDrawGridLines(true)
+        leftAxis.axisMinimum = 0f
+        
+        chartMonthly.axisRight.isEnabled = false
+    }
+    
+    private fun setupHabitStreakChart() {
+        chartHabitStreak.description.isEnabled = false
+        chartHabitStreak.setTouchEnabled(true)
+        chartHabitStreak.setDragEnabled(true)
+        chartHabitStreak.setScaleEnabled(false)
+        chartHabitStreak.setPinchZoom(false)
+        chartHabitStreak.legend.isEnabled = false
+        
+        val xAxis = chartHabitStreak.xAxis
+        xAxis.position = XAxis.XAxisPosition.BOTTOM
+        xAxis.textColor = Color.BLACK
+        xAxis.setDrawGridLines(false)
+        
+        val leftAxis = chartHabitStreak.axisLeft
+        leftAxis.textColor = Color.BLACK
+        leftAxis.setDrawGridLines(true)
+        leftAxis.axisMinimum = 0f
+        
+        chartHabitStreak.axisRight.isEnabled = false
     }
 
     private fun observeData() {
@@ -86,6 +184,7 @@ class DashboardFragment : Fragment() {
 
         taskViewModel.getCompletedTasksCountByDate(weekStart, weekEnd).observe(viewLifecycleOwner) { count ->
             tvCompletedThisWeek.text = count.toString()
+            updateWeeklyChart()
         }
 
         // Completed this month
@@ -106,6 +205,7 @@ class DashboardFragment : Fragment() {
 
         taskViewModel.getCompletedTasksCountByDate(monthStart, monthEnd).observe(viewLifecycleOwner) { count ->
             tvCompletedThisMonth.text = count.toString()
+            updateMonthlyChart()
         }
 
         // Habit statistics
@@ -144,7 +244,308 @@ class DashboardFragment : Fragment() {
 
             tvHabitCompletionRate.text = "$avgCompletion%"
             tvLongestStreak.text = longestStreak.toString()
+            updateHabitStreakChart(habits)
         }
+
+        // Update heatmap and tag/priority charts
+        taskViewModel.getCompletedTasks().observe(viewLifecycleOwner) { tasks ->
+            updateHeatmapCalendar(tasks)
+            updatePriorityChart(tasks)
+            updateTagsChart(tasks)
+        }
+    }
+    
+    private fun updateWeeklyChart() {
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek)
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        
+        val entries = mutableListOf<Entry>()
+        val dateFormat = SimpleDateFormat("dd/MM", Locale.getDefault())
+        val labels = mutableListOf<String>()
+        
+        for (i in 0..6) {
+            val dayStart = calendar.timeInMillis
+            calendar.add(Calendar.DAY_OF_YEAR, 1)
+            val dayEnd = calendar.timeInMillis - 1
+            
+            // Get completed tasks for this day
+            taskViewModel.getCompletedTasksCountByDate(dayStart, dayEnd).observe(viewLifecycleOwner) { count ->
+                entries.add(Entry(i.toFloat(), count.toFloat()))
+                labels.add(dateFormat.format(Date(dayStart)))
+                
+                if (entries.size == 7) {
+                    val dataSet = LineDataSet(entries, "Hoàn thành")
+                    dataSet.color = Color.parseColor("#2196F3")
+                    dataSet.valueTextColor = Color.BLACK
+                    dataSet.setCircleColor(Color.parseColor("#2196F3"))
+                    dataSet.lineWidth = 2f
+                    dataSet.circleRadius = 4f
+                    dataSet.setDrawValues(false)
+                    
+                    val lineData = LineData(dataSet)
+                    chartWeekly.data = lineData
+                    
+                    val xAxis = chartWeekly.xAxis
+                    xAxis.valueFormatter = object : ValueFormatter() {
+                        override fun getFormattedValue(value: Float): String {
+                            val index = value.toInt()
+                            return if (index >= 0 && index < labels.size) labels[index] else ""
+                        }
+                    }
+                    
+                    chartWeekly.invalidate()
+                }
+            }
+        }
+    }
+    
+    private fun updateMonthlyChart() {
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.DAY_OF_MONTH, 1)
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        
+        val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+        val entries = mutableListOf<BarEntry>()
+        val labels = mutableListOf<String>()
+        
+        // Sample data for first 7 days, last 7 days, and middle
+        val sampleDays = listOf(1, 7, 14, 21, daysInMonth)
+        
+        for ((index, day) in sampleDays.withIndex()) {
+            calendar.set(Calendar.DAY_OF_MONTH, day)
+            val dayStart = calendar.timeInMillis
+            calendar.add(Calendar.DAY_OF_YEAR, 1)
+            val dayEnd = calendar.timeInMillis - 1
+            
+            taskViewModel.getCompletedTasksCountByDate(dayStart, dayEnd).observe(viewLifecycleOwner) { count ->
+                entries.add(BarEntry(index.toFloat(), count.toFloat()))
+                labels.add("$day")
+                
+                if (entries.size == sampleDays.size) {
+                    val dataSet = BarDataSet(entries, "Hoàn thành")
+                    dataSet.color = Color.parseColor("#4CAF50")
+                    dataSet.valueTextColor = Color.BLACK
+                    
+                    val barData = BarData(dataSet)
+                    chartMonthly.data = barData
+                    
+                    val xAxis = chartMonthly.xAxis
+                    xAxis.valueFormatter = object : ValueFormatter() {
+                        override fun getFormattedValue(value: Float): String {
+                            val index = value.toInt()
+                            return if (index >= 0 && index < labels.size) labels[index] else ""
+                        }
+                    }
+                    
+                    chartMonthly.invalidate()
+                }
+            }
+        }
+    }
+    
+    private fun updateHabitStreakChart(habits: List<com.example.personaltaskmanager.features.habit_tracker.data.model.Habit>) {
+        val entries = mutableListOf<Entry>()
+        val labels = mutableListOf<String>()
+        
+        habits.sortedByDescending { it.streakDays }.take(5).forEachIndexed { index, habit ->
+            entries.add(Entry(index.toFloat(), habit.streakDays.toFloat()))
+            labels.add(habit.title.take(10))
+        }
+        
+        if (entries.isNotEmpty()) {
+            val dataSet = LineDataSet(entries, "Streak")
+            dataSet.color = Color.parseColor("#FFD700")
+            dataSet.valueTextColor = Color.BLACK
+            dataSet.setCircleColor(Color.parseColor("#FFD700"))
+            dataSet.lineWidth = 2f
+            dataSet.circleRadius = 4f
+            dataSet.setDrawValues(true)
+            
+            val lineData = LineData(dataSet)
+            chartHabitStreak.data = lineData
+            
+            val xAxis = chartHabitStreak.xAxis
+            xAxis.valueFormatter = object : ValueFormatter() {
+                override fun getFormattedValue(value: Float): String {
+                    val index = value.toInt()
+                    return if (index >= 0 && index < labels.size) labels[index] else ""
+                }
+            }
+            
+            chartHabitStreak.invalidate()
+        }
+    }
+
+    private fun setupPriorityChart() {
+        chartPriority.description.isEnabled = false
+        chartPriority.setTouchEnabled(true)
+        chartPriority.legend.isEnabled = true
+        chartPriority.legend.textColor = Color.BLACK
+    }
+
+    private fun setupTagsChart() {
+        chartTags.description.isEnabled = false
+        chartTags.setTouchEnabled(true)
+        chartTags.setDragEnabled(true)
+        chartTags.setScaleEnabled(false)
+        chartTags.setPinchZoom(false)
+        chartTags.legend.isEnabled = false
+
+        val xAxis = chartTags.xAxis
+        xAxis.position = XAxis.XAxisPosition.BOTTOM
+        xAxis.textColor = Color.BLACK
+        xAxis.setDrawGridLines(false)
+
+        val leftAxis = chartTags.axisLeft
+        leftAxis.textColor = Color.BLACK
+        leftAxis.setDrawGridLines(true)
+        leftAxis.axisMinimum = 0f
+
+        chartTags.axisRight.isEnabled = false
+    }
+
+    private fun updateHeatmapCalendar(tasks: List<Task>) {
+        gridHeatmap.removeAllViews()
+
+        // Calculate completion count per day for last 42 days (6 weeks)
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        calendar.add(Calendar.DAY_OF_YEAR, -41) // Start from 42 days ago
+
+        val dayCounts = mutableMapOf<Long, Int>()
+        val dayInMillis = 86400000L
+
+        for (task in tasks) {
+            if (task.isCompleted && task.createdAt > 0) {
+                val day = (task.createdAt / dayInMillis) * dayInMillis
+                dayCounts[day] = (dayCounts[day] ?: 0) + 1
+            }
+        }
+
+        // Find max count for color scaling
+        val maxCount = dayCounts.values.maxOrNull() ?: 1
+
+        // Create grid cells
+        for (i in 0..41) {
+            val day = calendar.timeInMillis
+            val count = dayCounts[day] ?: 0
+            val intensity = if (maxCount > 0) (count.toFloat() / maxCount) else 0f
+
+            val cell = View(requireContext())
+            val cellSize = 40.dpToPx()
+            val params = LayoutParams(
+                GridLayout.spec(i / 7, 1f),
+                GridLayout.spec(i % 7, 1f)
+            ).apply {
+                width = cellSize
+                height = cellSize
+                setMargins(2, 2, 2, 2)
+            }
+
+            // Color based on intensity
+            val color = when {
+                count == 0 -> Color.parseColor("#E3F2FD")
+                intensity < 0.2f -> Color.parseColor("#90CAF9")
+                intensity < 0.4f -> Color.parseColor("#42A5F5")
+                intensity < 0.6f -> Color.parseColor("#1E88E5")
+                intensity < 0.8f -> Color.parseColor("#1565C0")
+                else -> Color.parseColor("#0D47A1")
+            }
+
+            cell.setBackgroundColor(color)
+            gridHeatmap.addView(cell, params)
+
+            calendar.add(Calendar.DAY_OF_YEAR, 1)
+        }
+    }
+
+    private fun updatePriorityChart(tasks: List<Task>) {
+        val highCount = tasks.count { it.priority == "high" && it.isCompleted }
+        val mediumCount = tasks.count { it.priority == "medium" && it.isCompleted }
+        val lowCount = tasks.count { it.priority == "low" && it.isCompleted }
+        val noPriorityCount = tasks.count { (it.priority == null || it.priority.isEmpty()) && it.isCompleted }
+
+        val entries = mutableListOf<PieEntry>()
+        if (highCount > 0) entries.add(PieEntry(highCount.toFloat(), "High"))
+        if (mediumCount > 0) entries.add(PieEntry(mediumCount.toFloat(), "Medium"))
+        if (lowCount > 0) entries.add(PieEntry(lowCount.toFloat(), "Low"))
+        if (noPriorityCount > 0) entries.add(PieEntry(noPriorityCount.toFloat(), "None"))
+
+        if (entries.isNotEmpty()) {
+            val dataSet = PieDataSet(entries, "Priority")
+            dataSet.colors = listOf(
+                Color.parseColor("#F44336"), // High - Red
+                Color.parseColor("#FF9800"), // Medium - Orange
+                Color.parseColor("#4CAF50"), // Low - Green
+                Color.parseColor("#9E9E9E")  // None - Gray
+            )
+            dataSet.valueTextColor = Color.BLACK
+            dataSet.valueTextSize = 12f
+
+            val pieData = PieData(dataSet)
+            chartPriority.data = pieData
+            chartPriority.invalidate()
+        }
+    }
+
+    private fun updateTagsChart(tasks: List<Task>) {
+        // Count tasks by tag
+        val tagCounts = mutableMapOf<String, Int>()
+        for (task in tasks) {
+            if (task.isCompleted) {
+                val tags = task.getTagsList()
+                for (tag in tags) {
+                    if (tag.isNotEmpty()) {
+                        tagCounts[tag] = (tagCounts[tag] ?: 0) + 1
+                    }
+                }
+            }
+        }
+
+        // Get top 5 tags
+        val topTags = tagCounts.toList().sortedByDescending { it.second }.take(5)
+
+        if (topTags.isNotEmpty()) {
+            val entries = mutableListOf<BarEntry>()
+            val labels = mutableListOf<String>()
+
+            topTags.forEachIndexed { index, (tag, count) ->
+                entries.add(BarEntry(index.toFloat(), count.toFloat()))
+                labels.add(tag.take(10))
+            }
+
+            val dataSet = BarDataSet(entries, "Tags")
+            dataSet.color = Color.parseColor("#2196F3")
+            dataSet.valueTextColor = Color.BLACK
+
+            val barData = BarData(dataSet)
+            chartTags.data = barData
+
+            val xAxis = chartTags.xAxis
+            xAxis.valueFormatter = object : ValueFormatter() {
+                override fun getFormattedValue(value: Float): String {
+                    val index = value.toInt()
+                    return if (index >= 0 && index < labels.size) labels[index] else ""
+                }
+            }
+
+            chartTags.invalidate()
+        }
+    }
+
+    private fun Int.dpToPx(): Int {
+        val density = resources.displayMetrics.density
+        return (this * density).toInt()
     }
 }
 

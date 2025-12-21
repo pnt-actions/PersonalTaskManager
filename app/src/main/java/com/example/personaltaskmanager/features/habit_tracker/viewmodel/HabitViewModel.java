@@ -108,5 +108,20 @@ public class HabitViewModel extends AndroidViewModel {
             repo.markHabitCompleted(habitId, dayStart, "");
         }
     }
+
+    // ===== SEARCH & FILTER =====
+    public LiveData<List<Habit>> searchHabits(String query) {
+        return repo.searchHabits(query);
+    }
+
+    public LiveData<List<Habit>> filterHabits(Integer minStreak, Integer maxStreak, 
+                                               Long startDate, Long endDate) {
+        return repo.filterHabits(minStreak, maxStreak, startDate, endDate);
+    }
+
+    public LiveData<List<Habit>> searchAndFilterHabits(String query, Integer minStreak, 
+                                                        Integer maxStreak, Long startDate, Long endDate) {
+        return repo.searchAndFilterHabits(query, minStreak, maxStreak, startDate, endDate);
+    }
 }
 

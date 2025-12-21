@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@color/white">
 
     <EditText
         android:id="@+id/edt_habit_title"
@@ -11,7 +12,10 @@
         android:layout_height="wrap_content"
         android:hint="Tên thói quen"
         android:textSize="16sp"
+        android:textColor="@color/textPrimary"
+        android:textColorHint="@color/textSecondary"
         android:padding="12dp"
+        android:background="@android:drawable/editbox_background_normal"
         android:layout_marginBottom="12dp" />
 
     <EditText
@@ -20,7 +24,10 @@
         android:layout_height="wrap_content"
         android:hint="Mô tả (tùy chọn)"
         android:textSize="14sp"
+        android:textColor="@color/textPrimary"
+        android:textColorHint="@color/textSecondary"
         android:padding="12dp"
+        android:background="@android:drawable/editbox_background_normal"
         android:minLines="2"
         android:maxLines="4" />
 

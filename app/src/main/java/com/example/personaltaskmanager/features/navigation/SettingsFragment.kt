@@ -8,10 +8,14 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.example.personaltaskmanager.R
 import com.example.personaltaskmanager.features.authentication.data.repository.AuthRepository // ⭐ THÊM IMPORT AuthRepository
 import com.example.personaltaskmanager.features.authentication.domain.usecase.LogoutUseCase // ⭐ THÊM IMPORT LogoutUseCase
 import com.example.personaltaskmanager.features.authentication.screens.LoginActivity // ⭐ THÊM IMPORT LoginActivity
+import com.example.personaltaskmanager.features.export.ExportUtils
+import com.example.personaltaskmanager.features.habit_tracker.viewmodel.HabitViewModel
+import com.example.personaltaskmanager.features.task_manager.viewmodel.TaskViewModel
 
 // DÒNG IMPORT GÂY LỖI ĐÃ BỊ XÓA HOẶC BỊ COMMENT
 
@@ -66,6 +70,13 @@ class SettingsFragment : Fragment() {
             "Ngôn ngữ",
             "Tiếng Việt (Mặc định)") {
             showLanguageDialog()
+        }
+
+        setupSettingItem(view, R.id.setting_export,
+            android.R.drawable.ic_menu_share,
+            "Xuất dữ liệu",
+            "Xuất tasks và habits ra file CSV") {
+            showExportDialog()
         }
     }
 
@@ -123,6 +134,66 @@ class SettingsFragment : Fragment() {
                     android.widget.Toast.LENGTH_SHORT
                 ).show()
                 
+                dialog.dismiss()
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
+
+    private fun showExportDialog() {
+        android.app.AlertDialog.Builder(requireContext())
+            .setTitle("Xuất dữ liệu")
+            .setItems(arrayOf("Xuất Tasks", "Xuất Habits", "Xuất tất cả")) { dialog, which ->
+                val taskViewModel = ViewModelProvider(requireActivity())[TaskViewModel::class.java]
+                val habitViewModel = ViewModelProvider(requireActivity())[HabitViewModel::class.java]
+
+                when (which) {
+                    0 -> { // Export Tasks
+                        taskViewModel.allTasks.observe(viewLifecycleOwner) { tasks ->
+                            if (tasks != null && tasks.isNotEmpty()) {
+                                ExportUtils.exportTasksToCSV(requireContext(), tasks)
+                            } else {
+                                android.widget.Toast.makeText(
+                                    requireContext(),
+                                    "Không có task nào để xuất",
+                                    android.widget.Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    }
+                    1 -> { // Export Habits
+                        habitViewModel.getAllHabits().observe(viewLifecycleOwner) { habits ->
+                            if (habits != null && habits.isNotEmpty()) {
+                                ExportUtils.exportHabitsToCSV(requireContext(), habits)
+                            } else {
+                                android.widget.Toast.makeText(
+                                    requireContext(),
+                                    "Không có habit nào để xuất",
+                                    android.widget.Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    }
+                    2 -> { // Export All
+                        taskViewModel.allTasks.observe(viewLifecycleOwner) { tasks ->
+                            habitViewModel.getAllHabits().observe(viewLifecycleOwner) { habits ->
+                                if (tasks != null && tasks.isNotEmpty()) {
+                                    ExportUtils.exportTasksToCSV(requireContext(), tasks)
+                                }
+                                if (habits != null && habits.isNotEmpty()) {
+                                    ExportUtils.exportHabitsToCSV(requireContext(), habits)
+                                }
+                                if ((tasks == null || tasks.isEmpty()) && (habits == null || habits.isEmpty())) {
+                                    android.widget.Toast.makeText(
+                                        requireContext(),
+                                        "Không có dữ liệu để xuất",
+                                        android.widget.Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        }
+                    }
+                }
                 dialog.dismiss()
             }
             .setNegativeButton("Hủy", null)

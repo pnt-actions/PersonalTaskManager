@@ -45,6 +45,10 @@ class TaskViewModel(app: Application) : AndroidViewModel(app) {
         repo.addTask(t)
     }
 
+    fun addTask(task: Task) {
+        repo.addTask(task)
+    }
+
     fun updateTask(task: Task) {
         repo.updateTask(task)
     }
@@ -115,5 +119,13 @@ class TaskViewModel(app: Application) : AndroidViewModel(app) {
 
     fun getCompletedTasksCountByDate(startDate: Long, endDate: Long): LiveData<Int> {
         return repo.getCompletedTasksCountByDate(startDate, endDate)
+    }
+
+    fun getCompletedTasksCountByPriority(priority: String): LiveData<Int> {
+        return repo.getCompletedTasksCountByPriority(priority)
+    }
+
+    fun getCompletedTasks(): LiveData<List<Task>> {
+        return repo.getCompletedTasks()
     }
 }

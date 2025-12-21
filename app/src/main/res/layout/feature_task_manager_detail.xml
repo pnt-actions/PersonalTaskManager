@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#FFFFFF">
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:padding="24dp"
-    android:background="#FFFFFF"
     tools:context=".features.task_manager.screens.TaskDetailActivity">
 
     <!-- BUTTON BACK -->
@@ -61,6 +66,74 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
+    <!-- PRIORITY -->
+    <TextView
+        android:id="@+id/tv_priority_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Độ ưu tiên:"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/edt_task_description"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <RadioGroup
+        android:id="@+id/rg_priority"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_priority_label"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <RadioButton
+            android:id="@+id/rb_priority_low"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Thấp"
+            android:tag="low"/>
+
+        <RadioButton
+            android:id="@+id/rb_priority_medium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Trung bình"
+            android:tag="medium"
+            android:checked="true"/>
+
+        <RadioButton
+            android:id="@+id/rb_priority_high"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cao"
+            android:tag="high"/>
+    </RadioGroup>
+
+    <!-- TAGS -->
+    <TextView
+        android:id="@+id/tv_tags_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tags (phân cách bằng dấu phẩy):"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/rg_priority"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <EditText
+        android:id="@+id/edt_tags"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="Ví dụ: công việc, quan trọng, dự án"
+        android:padding="12dp"
+        android:background="@android:drawable/editbox_background_normal"
+        app:layout_constraintTop_toBottomOf="@id/tv_tags_label"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
     <!-- DEADLINE -->
     <EditText
         android:id="@+id/edt_task_date"
@@ -72,7 +145,7 @@
         android:padding="12dp"
         android:focusable="false"
         android:background="@android:drawable/editbox_background_normal"
-        app:layout_constraintTop_toBottomOf="@id/edt_task_description"
+        app:layout_constraintTop_toBottomOf="@id/edt_tags"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
@@ -100,6 +173,29 @@
         app:layout_constraintTop_toBottomOf="@id/img_task"
         app:layout_constraintStart_toStartOf="parent"/>
 
+    <!-- RECURRING -->
+    <TextView
+        android:id="@+id/tv_recurring_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lặp lại:"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/btn_pick_image"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <Spinner
+        android:id="@+id/spinner_recurring"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:padding="12dp"
+        android:background="@android:drawable/editbox_background_normal"
+        app:layout_constraintTop_toBottomOf="@id/tv_recurring_label"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
     <!-- NÚT LƯU -->
     <Button
         android:id="@+id/btn_save_task"
@@ -110,8 +206,10 @@
         android:padding="12dp"
         android:textColor="@android:color/white"
         android:backgroundTint="@color/colorPrimary"
-        app:layout_constraintTop_toBottomOf="@id/btn_pick_image"
+        app:layout_constraintTop_toBottomOf="@id/spinner_recurring"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

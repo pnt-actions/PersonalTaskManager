@@ -76,14 +76,46 @@
         app:layout_constraintTop_toBottomOf="@id/card_search"
         app:layout_constraintStart_toStartOf="parent"/>
 
-    <Spinner
-        android:id="@+id/spinner_filter"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/ll_filter_bar"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:layout_marginStart="20dp"
-        android:spinnerMode="dropdown"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@id/tv_title"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <Spinner
+            android:id="@+id/spinner_filter"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:spinnerMode="dropdown"
+            android:layout_marginEnd="8dp" />
+
+        <ImageButton
+            android:id="@+id/btn_filter_advanced"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@android:drawable/ic_menu_sort_by_size"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:tint="@color/colorPrimary"
+            android:contentDescription="Advanced Filter" />
+
+        <ImageButton
+            android:id="@+id/btn_saved_filters"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@android:drawable/ic_menu_recent_history"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:tint="@color/colorPrimary"
+            android:layout_marginStart="4dp"
+            android:contentDescription="Saved Filters" />
+
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_tasks"
@@ -96,7 +128,7 @@
         android:paddingTop="8dp"
         android:paddingBottom="16dp"
         android:scrollbars="vertical"
-        app:layout_constraintTop_toBottomOf="@id/spinner_filter"
+        app:layout_constraintTop_toBottomOf="@id/ll_filter_bar"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

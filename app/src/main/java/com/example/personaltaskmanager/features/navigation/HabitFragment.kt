@@ -4,6 +4,8 @@ import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -27,6 +29,15 @@ class HabitFragment : Fragment() {
     private lateinit var rvHabits: RecyclerView
     private lateinit var adapter: HabitAdapter
     private lateinit var fabAdd: FloatingActionButton
+    private lateinit var edtSearch: EditText
+    private lateinit var btnFilter: ImageButton
+
+    // Filter state
+    private var searchQuery: String = ""
+    private var minStreak: Int? = null
+    private var maxStreak: Int? = null
+    private var startDate: Long? = null
+    private var endDate: Long? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,16 +52,160 @@ class HabitFragment : Fragment() {
 
         rvHabits = view.findViewById(R.id.rv_habits)
         fabAdd = view.findViewById(R.id.fab_add_habit)
+        edtSearch = view.findViewById(R.id.edt_search_habit)
+        btnFilter = view.findViewById(R.id.btn_filter_habit)
 
         viewModel = ViewModelProvider(requireActivity())[HabitViewModel::class.java]
 
         setupRecycler()
+        setupSearch()
+        setupFilter()
 
         fabAdd.setOnClickListener { showAddHabitDialog() }
 
-        viewModel.getAllHabits().observe(viewLifecycleOwner) { habits ->
-            adapter.setData(habits)
+        applyFilters()
+    }
+
+    private fun setupSearch() {
+        edtSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                searchQuery = s?.toString()?.trim() ?: ""
+                applyFilters()
+            }
+        })
+    }
+
+    private fun setupFilter() {
+        btnFilter.setOnClickListener { showFilterDialog() }
+    }
+
+    private fun applyFilters() {
+        if (searchQuery.isEmpty() && minStreak == null && maxStreak == null && startDate == null && endDate == null) {
+            // No filters - show all
+            viewModel.getAllHabits().observe(viewLifecycleOwner) { habits ->
+                adapter.setData(habits)
+            }
+        } else {
+            // Apply filters
+            viewModel.searchAndFilterHabits(
+                if (searchQuery.isEmpty()) "" else searchQuery,
+                minStreak,
+                maxStreak,
+                startDate,
+                endDate
+            ).observe(viewLifecycleOwner) { habits ->
+                adapter.setData(habits)
+            }
         }
+    }
+
+    private fun showFilterDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.feature_habit_filter_dialog, null)
+        val edtMinStreak = dialogView.findViewById<EditText>(R.id.edt_min_streak)
+        val edtMaxStreak = dialogView.findViewById<EditText>(R.id.edt_max_streak)
+        val edtStartDate = dialogView.findViewById<EditText>(R.id.edt_filter_start_date)
+        val edtEndDate = dialogView.findViewById<EditText>(R.id.edt_filter_end_date)
+        val btnClear = dialogView.findViewById<Button>(R.id.btn_clear_filter)
+
+        // Set current values
+        edtMinStreak.setText(minStreak?.toString() ?: "")
+        edtMaxStreak.setText(maxStreak?.toString() ?: "")
+        
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        if (startDate != null) {
+            edtStartDate.setText(dateFormat.format(Date(startDate!!)))
+        }
+        if (endDate != null) {
+            edtEndDate.setText(dateFormat.format(Date(endDate!!)))
+        }
+
+        // Date pickers
+        val calendar = Calendar.getInstance()
+        edtStartDate.setOnClickListener {
+            DatePickerDialog(requireContext(), { _, year, month, day ->
+                calendar.set(year, month, day)
+                calendar.set(Calendar.HOUR_OF_DAY, 0)
+                calendar.set(Calendar.MINUTE, 0)
+                calendar.set(Calendar.SECOND, 0)
+                calendar.set(Calendar.MILLISECOND, 0)
+                edtStartDate.setText(dateFormat.format(calendar.time))
+            }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
+        }
+
+        edtEndDate.setOnClickListener {
+            DatePickerDialog(requireContext(), { _, year, month, day ->
+                calendar.set(year, month, day)
+                calendar.set(Calendar.HOUR_OF_DAY, 0)
+                calendar.set(Calendar.MINUTE, 0)
+                calendar.set(Calendar.SECOND, 0)
+                calendar.set(Calendar.MILLISECOND, 0)
+                edtEndDate.setText(dateFormat.format(calendar.time))
+            }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
+        }
+
+        val dialog = AlertDialog.Builder(requireContext(), R.style.AlertDialogTheme)
+            .setTitle("Lọc thói quen")
+            .setView(dialogView)
+            .setPositiveButton("Áp dụng") { _, _ ->
+                minStreak = edtMinStreak.text.toString().trim().toIntOrNull()
+                maxStreak = edtMaxStreak.text.toString().trim().toIntOrNull()
+                
+                val startText = edtStartDate.text.toString()
+                val endText = edtEndDate.text.toString()
+                
+                startDate = if (startText.isNotEmpty()) {
+                    try {
+                        val parsed = dateFormat.parse(startText)
+                        if (parsed != null) {
+                            val cal = Calendar.getInstance()
+                            cal.time = parsed
+                            cal.set(Calendar.HOUR_OF_DAY, 0)
+                            cal.set(Calendar.MINUTE, 0)
+                            cal.set(Calendar.SECOND, 0)
+                            cal.set(Calendar.MILLISECOND, 0)
+                            cal.timeInMillis
+                        } else null
+                    } catch (e: Exception) { null }
+                } else null
+                
+                endDate = if (endText.isNotEmpty()) {
+                    try {
+                        val parsed = dateFormat.parse(endText)
+                        if (parsed != null) {
+                            val cal = Calendar.getInstance()
+                            cal.time = parsed
+                            cal.set(Calendar.HOUR_OF_DAY, 23)
+                            cal.set(Calendar.MINUTE, 59)
+                            cal.set(Calendar.SECOND, 59)
+                            cal.set(Calendar.MILLISECOND, 999)
+                            cal.timeInMillis
+                        } else null
+                    } catch (e: Exception) { null }
+                } else null
+                
+                applyFilters()
+            }
+            .setNegativeButton("Hủy", null)
+            .create()
+        
+        dialog.window?.setBackgroundDrawableResource(android.R.color.white)
+        
+        btnClear.setOnClickListener {
+            minStreak = null
+            maxStreak = null
+            startDate = null
+            endDate = null
+            edtMinStreak.setText("")
+            edtMaxStreak.setText("")
+            edtStartDate.setText("")
+            edtEndDate.setText("")
+            applyFilters()
+            dialog.dismiss()
+        }
+        
+        dialog.show()
     }
 
     private fun setupRecycler() {
@@ -120,12 +275,15 @@ class HabitFragment : Fragment() {
             }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
         }
 
-        val dialog = AlertDialog.Builder(requireContext())
+        val dialog = AlertDialog.Builder(requireContext(), R.style.AlertDialogTheme)
             .setTitle("Thêm Thói quen mới")
             .setView(dialogView)
             .setPositiveButton("Thêm", null)
             .setNegativeButton("Hủy", null)
             .create()
+        
+        // Đảm bảo dialog có nền trắng
+        dialog.window?.setBackgroundDrawableResource(android.R.color.white)
 
         dialog.setOnShowListener {
             val btnPositive = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
@@ -278,7 +436,7 @@ class HabitFragment : Fragment() {
         edtTitle.setText(habit.title)
         edtDescription.setText(habit.description)
 
-        AlertDialog.Builder(requireContext())
+        val editDialog = AlertDialog.Builder(requireContext(), R.style.AlertDialogTheme)
             .setTitle("Chỉnh sửa Thói quen")
             .setView(dialogView)
             .setPositiveButton("Lưu") { _, _ ->
@@ -296,6 +454,10 @@ class HabitFragment : Fragment() {
                 Toast.makeText(requireContext(), "Đã cập nhật thói quen", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Hủy", null)
-            .show()
+            .create()
+        
+        // Đảm bảo dialog có nền trắng (giống create task)
+        editDialog.window?.setBackgroundDrawableResource(android.R.color.white)
+        editDialog.show()
     }
 }

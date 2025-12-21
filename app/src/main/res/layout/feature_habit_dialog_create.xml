@@ -2,13 +2,15 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:background="@color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:background="@color/white">
 
         <!-- Tên thói quen -->
         <EditText
@@ -39,6 +41,7 @@
             android:text="Loại thời gian:"
             android:textSize="14sp"
             android:textStyle="bold"
+            android:textColor="@color/textPrimary"
             android:layout_marginBottom="8dp" />
 
         <RadioGroup
@@ -75,6 +78,7 @@
                 android:layout_height="wrap_content"
                 android:text="Từ ngày:"
                 android:textSize="14sp"
+                android:textColor="@color/textPrimary"
                 android:layout_marginBottom="4dp" />
 
             <EditText
@@ -82,9 +86,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Chọn ngày bắt đầu"
+                android:textColor="@color/textPrimary"
+                android:textColorHint="@color/textSecondary"
                 android:focusable="false"
                 android:clickable="true"
                 android:padding="12dp"
+                android:background="@android:drawable/editbox_background_normal"
                 android:layout_marginBottom="8dp" />
 
             <TextView
@@ -92,6 +99,7 @@
                 android:layout_height="wrap_content"
                 android:text="Đến ngày:"
                 android:textSize="14sp"
+                android:textColor="@color/textPrimary"
                 android:layout_marginBottom="4dp" />
 
             <EditText
@@ -99,9 +107,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Chọn ngày kết thúc"
+                android:textColor="@color/textPrimary"
+                android:textColorHint="@color/textSecondary"
                 android:focusable="false"
                 android:clickable="true"
-                android:padding="12dp" />
+                android:padding="12dp"
+                android:background="@android:drawable/editbox_background_normal" />
         </LinearLayout>
 
         <!-- Khoảng thời gian (Period) -->
@@ -118,6 +129,7 @@
                 android:layout_height="wrap_content"
                 android:text="Chọn khoảng thời gian:"
                 android:textSize="14sp"
+                android:textColor="@color/textPrimary"
                 android:layout_marginBottom="8dp" />
 
             <Spinner
@@ -134,6 +146,7 @@
             android:text="Số phút cần làm mỗi ngày:"
             android:textSize="14sp"
             android:textStyle="bold"
+            android:textColor="@color/textPrimary"
             android:layout_marginBottom="8dp" />
 
         <EditText
@@ -141,8 +154,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Ví dụ: 30 phút"
+            android:textColor="@color/textPrimary"
+            android:textColorHint="@color/textSecondary"
             android:inputType="number"
             android:padding="12dp"
+            android:background="@android:drawable/editbox_background_normal"
             android:layout_marginBottom="12dp" />
 
     </LinearLayout>

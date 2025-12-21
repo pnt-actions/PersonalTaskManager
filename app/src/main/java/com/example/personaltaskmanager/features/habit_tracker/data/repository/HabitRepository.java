@@ -198,5 +198,20 @@ public class HabitRepository {
         
         habitDao.updateHabit(habit);
     }
+
+    // ===== SEARCH & FILTER =====
+    public LiveData<List<Habit>> searchHabits(String query) {
+        return habitDao.searchHabits(getCurrentUserId(), query);
+    }
+
+    public LiveData<List<Habit>> filterHabits(Integer minStreak, Integer maxStreak, 
+                                               Long startDate, Long endDate) {
+        return habitDao.filterHabits(getCurrentUserId(), minStreak, maxStreak, startDate, endDate);
+    }
+
+    public LiveData<List<Habit>> searchAndFilterHabits(String query, Integer minStreak, 
+                                                        Integer maxStreak, Long startDate, Long endDate) {
+        return habitDao.searchAndFilterHabits(getCurrentUserId(), query, minStreak, maxStreak, startDate, endDate);
+    }
 }
 

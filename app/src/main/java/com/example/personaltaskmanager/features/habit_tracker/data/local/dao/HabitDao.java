@@ -65,5 +65,30 @@ public interface HabitDao {
 
     @Query("DELETE FROM habit_completions WHERE habitId = :habitId")
     void deleteAllCompletionsForHabit(int habitId);
+
+    // ===== SEARCH & FILTER =====
+    @Query("SELECT * FROM habits WHERE userId = :userId AND " +
+           "(title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%') " +
+           "ORDER BY createdAt DESC")
+    LiveData<List<Habit>> searchHabits(int userId, String query);
+
+    @Query("SELECT * FROM habits WHERE userId = :userId AND " +
+           "(:minStreak IS NULL OR streakDays >= :minStreak) AND " +
+           "(:maxStreak IS NULL OR streakDays <= :maxStreak) AND " +
+           "(:startDate IS NULL OR startDate >= :startDate) AND " +
+           "(:endDate IS NULL OR endDate <= :endDate OR endDate = 0) " +
+           "ORDER BY streakDays DESC, createdAt DESC")
+    LiveData<List<Habit>> filterHabits(int userId, Integer minStreak, Integer maxStreak, 
+                                        Long startDate, Long endDate);
+
+    @Query("SELECT * FROM habits WHERE userId = :userId AND " +
+           "(title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%') AND " +
+           "(:minStreak IS NULL OR streakDays >= :minStreak) AND " +
+           "(:maxStreak IS NULL OR streakDays <= :maxStreak) AND " +
+           "(:startDate IS NULL OR startDate >= :startDate) AND " +
+           "(:endDate IS NULL OR endDate <= :endDate OR endDate = 0) " +
+           "ORDER BY streakDays DESC, createdAt DESC")
+    LiveData<List<Habit>> searchAndFilterHabits(int userId, String query, Integer minStreak, 
+                                                 Integer maxStreak, Long startDate, Long endDate);
 }
 

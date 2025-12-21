@@ -5,11 +5,13 @@
         <!-- Luôn chạy Light Mode, không dùng Dark Mode -->
         <item name="android:forceDarkAllowed">false</item>
 
-        <!-- Status bar trắng, icon tối -->
+        <!-- Status bar trắng, icon tối (giống create task) -->
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">@color/white</item>
 
         <!-- Màu nền app -->
         <item name="android:colorBackground">@color/white</item>
+        <item name="android:windowBackground">@color/white</item>
 
     </style>
 

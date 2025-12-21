@@ -1,7 +1,11 @@
 package com.example.personaltaskmanager.features.habit_tracker.screens;
 
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowInsetsController;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -49,6 +53,8 @@ public class HabitDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.feature_habit_detail);
+        
+        setLightStatusBar();
 
         habitId = getIntent().getIntExtra("habit_id", -1);
         habitUuid = getIntent().getStringExtra("habit_uuid");
@@ -355,6 +361,26 @@ public class HabitDetailActivity extends AppCompatActivity {
                 super(itemView);
                 textView = (TextView) itemView;
             }
+        }
+    }
+
+    /** Light status bar (giống create task) */
+    private void setLightStatusBar() {
+        Window window = getWindow();
+        window.setStatusBarColor(Color.WHITE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowInsetsController controller = window.getInsetsController();
+            if (controller != null) {
+                controller.setSystemBarsAppearance(
+                    WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+                    WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                );
+            }
+        } else {
+            window.getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            );
         }
     }
 }

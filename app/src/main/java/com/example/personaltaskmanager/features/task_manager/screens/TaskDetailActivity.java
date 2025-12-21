@@ -9,11 +9,18 @@ import android.graphics.Color;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowInsetsController;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.Spinner;
 import android.widget.TextView;
+import org.json.JSONArray;
+import java.util.ArrayList;
+import java.util.List;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -33,12 +40,13 @@ import java.util.Calendar;
  */
 public class TaskDetailActivity extends AppCompatActivity {
 
-    private EditText edtTitle, edtDescription, edtDate;
+    private EditText edtTitle, edtDescription, edtDate, edtTags;
     private Button btnSave;
     private ImageButton btnBack;
-
     private ImageView imgTask;
     private TextView btnPickImage;
+    private RadioGroup rgPriority;
+    private Spinner spinnerRecurring;
 
     private TaskViewModel viewModel;
 
@@ -72,11 +80,21 @@ public class TaskDetailActivity extends AppCompatActivity {
         edtTitle = findViewById(R.id.edt_task_title);
         edtDescription = findViewById(R.id.edt_task_description);
         edtDate = findViewById(R.id.edt_task_date);
+        edtTags = findViewById(R.id.edt_tags);
         btnSave = findViewById(R.id.btn_save_task);
         btnBack = findViewById(R.id.btn_back);
 
         imgTask = findViewById(R.id.img_task);
         btnPickImage = findViewById(R.id.btn_pick_image);
+
+        rgPriority = findViewById(R.id.rg_priority);
+        spinnerRecurring = findViewById(R.id.spinner_recurring);
+
+        // Setup recurring spinner
+        String[] recurringOptions = {"Không lặp lại", "Hàng ngày", "Hàng tuần", "Hàng tháng"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, recurringOptions);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerRecurring.setAdapter(adapter);
     }
 
     /** Load dữ liệu nếu đang sửa task */
@@ -125,6 +143,32 @@ public class TaskDetailActivity extends AppCompatActivity {
         selectedDeadline = currentTask.getDeadline();
         edtDate.setText(DateUtils.formatDate(selectedDeadline));
 
+        // Priority
+        String priority = currentTask.getPriority();
+        if (priority == null || priority.isEmpty()) priority = "medium";
+        RadioButton rb = findViewById(
+            priority.equals("high") ? R.id.rb_priority_high :
+            priority.equals("low") ? R.id.rb_priority_low : R.id.rb_priority_medium
+        );
+        if (rb != null) rb.setChecked(true);
+
+        // Tags
+        List<String> tags = currentTask.getTagsList();
+        StringBuilder tagsBuilder = new StringBuilder();
+        for (int i = 0; i < tags.size(); i++) {
+            if (i > 0) tagsBuilder.append(", ");
+            tagsBuilder.append(tags.get(i));
+        }
+        edtTags.setText(tagsBuilder.toString());
+
+        // Recurring
+        String recurring = currentTask.getRecurringPattern();
+        if (recurring == null || recurring.isEmpty()) recurring = "none";
+        int position = recurring.equals("daily") ? 1 :
+                       recurring.equals("weekly") ? 2 :
+                       recurring.equals("monthly") ? 3 : 0;
+        spinnerRecurring.setSelection(position);
+
         if (currentTask.getImageUri() != null && !currentTask.getImageUri().isEmpty()) {
             selectedImageUri = currentTask.getImageUri();
             try {
@@ -139,6 +183,7 @@ public class TaskDetailActivity extends AppCompatActivity {
 
         btnSave.setText("Cập nhật công việc");
     }
+
 
     @Override
     protected void onResume() {
@@ -228,9 +273,39 @@ public class TaskDetailActivity extends AppCompatActivity {
             return;
         }
 
+        // Get priority
+        int selectedId = rgPriority.getCheckedRadioButtonId();
+        RadioButton rb = findViewById(selectedId);
+        String priority = rb != null ? (String) rb.getTag() : "medium";
+
+        // Get tags
+        String tagsStr = edtTags.getText().toString().trim();
+        List<String> tagsList = new ArrayList<>();
+        if (!tagsStr.isEmpty()) {
+            String[] parts = tagsStr.split(",");
+            for (String part : parts) {
+                String trimmed = part.trim();
+                if (!trimmed.isEmpty()) {
+                    tagsList.add(trimmed);
+                }
+            }
+        }
+        JSONArray tagsJson = new JSONArray(tagsList);
+        String tags = tagsJson.toString();
+
+        // Get recurring
+        String recurringPattern = "none";
+        int recurringPos = spinnerRecurring.getSelectedItemPosition();
+        if (recurringPos == 1) recurringPattern = "daily";
+        else if (recurringPos == 2) recurringPattern = "weekly";
+        else if (recurringPos == 3) recurringPattern = "monthly";
+
         // UPDATE
         if (currentTask != null) {
             currentTask.setImageUri(selectedImageUri);
+            currentTask.setPriority(priority);
+            currentTask.setTags(tags);
+            currentTask.setRecurringPattern(recurringPattern);
             viewModel.updateTask(currentTask, title, desc, selectedDeadline);
             setResult(RESULT_OK);
             finish();
@@ -238,7 +313,13 @@ public class TaskDetailActivity extends AppCompatActivity {
         }
 
         // ADD
-        viewModel.addTask(title, desc, selectedDeadline, selectedImageUri);
+        Task newTask = new Task(title, desc, System.currentTimeMillis(),
+            selectedDeadline, "", "", 0);
+        newTask.setImageUri(selectedImageUri);
+        newTask.setPriority(priority);
+        newTask.setTags(tags);
+        newTask.setRecurringPattern(recurringPattern);
+        viewModel.addTask(newTask);
         setResult(RESULT_OK);
         finish();
     }

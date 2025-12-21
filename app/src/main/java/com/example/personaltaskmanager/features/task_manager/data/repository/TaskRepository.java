@@ -122,4 +122,12 @@ public class TaskRepository {
     public LiveData<Integer> getCompletedTasksCountByDate(long startDate, long endDate) {
         return dao.getCompletedTasksCountByDate(getCurrentUserId(), startDate, endDate);
     }
+
+    public LiveData<Integer> getCompletedTasksCountByPriority(String priority) {
+        return dao.getCompletedTasksCountByPriority(getCurrentUserId(), priority);
+    }
+
+    public LiveData<List<Task>> getCompletedTasks() {
+        return dao.getCompletedTasks(getCurrentUserId());
+    }
 }
