@@ -14,6 +14,7 @@ import com.example.personaltaskmanager.features.calendar_events.screens.Calendar
 import com.example.personaltaskmanager.features.navigation.SettingsFragment
 import com.example.personaltaskmanager.features.task_manager.screens.TaskListFragment
 import com.example.personaltaskmanager.features.navigation.HabitFragment
+import com.example.personaltaskmanager.features.dashboard.screens.DashboardFragment
 import com.example.personaltaskmanager.features.habit_tracker.data.model.Habit
 import com.example.personaltaskmanager.features.habit_tracker.data.model.HabitCompletion
 import com.example.personaltaskmanager.features.habit_tracker.viewmodel.HabitViewModel
@@ -35,7 +36,7 @@ class NavigationActivity : AppCompatActivity() {
 
             var current by remember {
                 mutableStateOf(
-                    if (role == "admin") AdminNavItem.MANAGE else NavItem.TASKS
+                    if (role == "admin") AdminNavItem.MANAGE else NavItem.DASHBOARD
                 )
             }
 
@@ -61,7 +62,7 @@ class NavigationActivity : AppCompatActivity() {
         if (role == "admin") {
             navigateAdminTo(AdminNavItem.MANAGE)
         } else {
-            navigateTo(NavItem.TASKS)
+            navigateTo(NavItem.DASHBOARD)
             // Kiểm tra và hiển thị thông báo về target chưa hoàn thành
             checkIncompleteTargets()
         }
@@ -133,6 +134,7 @@ class NavigationActivity : AppCompatActivity() {
     // --------------------- USER NAV -------------------------
     private fun navigateTo(item: NavItem) {
         val fragment: Fragment = when (item) {
+            NavItem.DASHBOARD -> DashboardFragment()
             NavItem.TASKS -> TaskListFragment()
             NavItem.CALENDAR -> CalendarFragment()
             NavItem.HABIT -> HabitFragment()

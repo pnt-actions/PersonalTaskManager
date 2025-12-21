@@ -22,9 +22,10 @@ import kotlinx.coroutines.launch
 import com.example.personaltaskmanager.R
 
 enum class NavItem(val label: String, val icon: Int) {
+    DASHBOARD("Dashboard", android.R.drawable.ic_menu_recent_history),
     TASKS("Tasks", R.drawable.feature_task_manager_ic_calendar),
     CALENDAR("Calendar", R.drawable.feature_calendar_ic_calendar),
-    HABIT("Habit", R.drawable.feature_habit_ic_habit), // Thêm habit
+    HABIT("Habit", R.drawable.feature_habit_ic_habit),
     SETTINGS("Settings", android.R.drawable.ic_menu_preferences)
 }
 

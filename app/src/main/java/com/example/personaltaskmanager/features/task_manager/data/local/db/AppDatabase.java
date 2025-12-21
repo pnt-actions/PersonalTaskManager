@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 
 @Database(
         entities = {Task.class},
-        version = 6,
+        version = 7,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {

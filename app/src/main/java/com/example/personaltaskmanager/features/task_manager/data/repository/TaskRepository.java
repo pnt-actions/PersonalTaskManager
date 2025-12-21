@@ -79,4 +79,47 @@ public class TaskRepository {
     public Task getTaskByUuidSync(String uuid) {
         return dao.getTaskByUuidSync(uuid);
     }
+
+    // ===== FILTER & SEARCH =====
+    public LiveData<List<Task>> getTasksByPriority(String priority) {
+        return dao.getTasksByPriority(getCurrentUserId(), priority);
+    }
+
+    public LiveData<List<Task>> getSubtasks(int parentTaskId) {
+        return dao.getSubtasks(getCurrentUserId(), parentTaskId);
+    }
+
+    public List<Task> getSubtasksSync(int parentTaskId) {
+        return dao.getSubtasksSync(getCurrentUserId(), parentTaskId);
+    }
+
+    public LiveData<List<Task>> searchTasks(String query) {
+        return dao.searchTasks(getCurrentUserId(), query);
+    }
+
+    public LiveData<List<Task>> getTasksByTag(String tag) {
+        return dao.getTasksByTag(getCurrentUserId(), tag);
+    }
+
+    public LiveData<List<Task>> getTasksFiltered(String priority, Boolean isCompleted, 
+                                                   String tag, long startDate, long endDate, String sortBy) {
+        return dao.getTasksFiltered(getCurrentUserId(), priority, isCompleted, tag, startDate, endDate, sortBy);
+    }
+
+    // ===== STATISTICS =====
+    public LiveData<Integer> getCompletedTasksCount() {
+        return dao.getCompletedTasksCount(getCurrentUserId());
+    }
+
+    public LiveData<Integer> getPendingTasksCount() {
+        return dao.getPendingTasksCount(getCurrentUserId());
+    }
+
+    public LiveData<Integer> getOverdueTasksCount() {
+        return dao.getOverdueTasksCount(getCurrentUserId(), System.currentTimeMillis());
+    }
+
+    public LiveData<Integer> getCompletedTasksCountByDate(long startDate, long endDate) {
+        return dao.getCompletedTasksCountByDate(getCurrentUserId(), startDate, endDate);
+    }
 }

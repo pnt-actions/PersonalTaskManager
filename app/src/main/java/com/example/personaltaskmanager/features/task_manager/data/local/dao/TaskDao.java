@@ -51,4 +51,52 @@ public interface TaskDao {
 
     @Query("SELECT * FROM tasks WHERE userId = :userId AND deadline BETWEEN :start AND :end ORDER BY deadline ASC")
     LiveData<List<Task>> getTasksByDate(int userId, long start, long end);
+
+    // ===== FILTER BY PRIORITY =====
+    @Query("SELECT * FROM tasks WHERE userId = :userId AND priority = :priority ORDER BY id DESC")
+    LiveData<List<Task>> getTasksByPriority(int userId, String priority);
+
+    // ===== FILTER BY PARENT TASK (SUBTASKS) =====
+    @Query("SELECT * FROM tasks WHERE userId = :userId AND parentTaskId = :parentTaskId ORDER BY id DESC")
+    LiveData<List<Task>> getSubtasks(int userId, int parentTaskId);
+
+    @Query("SELECT * FROM tasks WHERE userId = :userId AND parentTaskId = :parentTaskId ORDER BY id DESC")
+    List<Task> getSubtasksSync(int userId, int parentTaskId);
+
+    // ===== SEARCH =====
+    @Query("SELECT * FROM tasks WHERE userId = :userId AND " +
+           "(title LIKE '%' || :query || '%' OR description LIKE '%' || :query || '%' OR tags LIKE '%' || :query || '%') " +
+           "ORDER BY id DESC")
+    LiveData<List<Task>> searchTasks(int userId, String query);
+
+    // ===== FILTER BY TAG =====
+    @Query("SELECT * FROM tasks WHERE userId = :userId AND tags LIKE '%' || :tag || '%' ORDER BY id DESC")
+    LiveData<List<Task>> getTasksByTag(int userId, String tag);
+
+    // ===== COMPLEX FILTER =====
+    @Query("SELECT * FROM tasks WHERE userId = :userId " +
+           "AND (:priority IS NULL OR priority = :priority) " +
+           "AND (:isCompleted IS NULL OR isCompleted = :isCompleted) " +
+           "AND (:tag IS NULL OR tags LIKE '%' || :tag || '%') " +
+           "AND (deadline >= :startDate OR :startDate = 0) " +
+           "AND (deadline <= :endDate OR :endDate = 0) " +
+           "ORDER BY " +
+           "CASE WHEN :sortBy = 'priority' THEN " +
+           "  CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END " +
+           "ELSE id END DESC")
+    LiveData<List<Task>> getTasksFiltered(int userId, String priority, Boolean isCompleted, 
+                                          String tag, long startDate, long endDate, String sortBy);
+
+    // ===== STATISTICS =====
+    @Query("SELECT COUNT(*) FROM tasks WHERE userId = :userId AND isCompleted = 1")
+    LiveData<Integer> getCompletedTasksCount(int userId);
+
+    @Query("SELECT COUNT(*) FROM tasks WHERE userId = :userId AND isCompleted = 0")
+    LiveData<Integer> getPendingTasksCount(int userId);
+
+    @Query("SELECT COUNT(*) FROM tasks WHERE userId = :userId AND deadline > 0 AND deadline < :now AND isCompleted = 0")
+    LiveData<Integer> getOverdueTasksCount(int userId, long now);
+
+    @Query("SELECT COUNT(*) FROM tasks WHERE userId = :userId AND isCompleted = 1 AND createdAt >= :startDate AND createdAt <= :endDate")
+    LiveData<Integer> getCompletedTasksCountByDate(int userId, long startDate, long endDate);
 }
