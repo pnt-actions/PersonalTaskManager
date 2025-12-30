@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Style cho AlertDialog - nền trắng, text đen -->
+    <style name="AlertDialogTheme" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
+        <item name="android:windowBackground">@color/white</item>
+        <item name="android:textColorPrimary">@color/textPrimary</item>
+        <item name="android:textColorSecondary">@color/textSecondary</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+    </style>
+</resources>
+

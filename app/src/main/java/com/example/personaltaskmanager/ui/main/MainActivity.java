@@ -6,8 +6,10 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.personaltaskmanager.features.authentication.data.repository.AuthRepository;
 import com.example.personaltaskmanager.features.authentication.screens.AuthSplashActivity;
 import com.example.personaltaskmanager.features.navigation.NavigationActivity;
+import com.google.firebase.auth.FirebaseAuth;
 
 /**
  * MainActivity
@@ -45,19 +47,17 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // ==========================================================
-        // 2) LOGIN CHECK — kiểm thử luồng authentication
+        // 2) LOGIN CHECK — kiểm tra Firebase Auth state
         // ==========================================================
 
-        SharedPreferences prefs =
-                getSharedPreferences("auth_prefs", MODE_PRIVATE);
-
-        String currentUser = prefs.getString("current_user", null);
-
-        if (currentUser != null && !currentUser.isEmpty()) {
-            // Đã đăng nhập trước đó → vào NavigationActivity
+        AuthRepository authRepo = new AuthRepository(this);
+        
+        // Kiểm tra Firebase Auth trước
+        if (authRepo.isLoggedIn()) {
+            // Đã đăng nhập với Firebase → vào NavigationActivity
             startActivity(new Intent(this, NavigationActivity.class));
         } else {
-            // Chưa có user → đi vào màn auth splash
+            // Chưa đăng nhập → đi vào màn auth splash
             startActivity(new Intent(this, AuthSplashActivity.class));
         }
 

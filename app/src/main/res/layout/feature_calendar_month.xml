@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@color/white">
 
     <!-- HEADER THÁNG -->
     <LinearLayout
@@ -27,7 +28,8 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
             android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="@color/textPrimary" />
 
         <ImageButton
             android:id="@+id/btn_next_month"
@@ -67,7 +69,8 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="All"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="@color/textPrimary" />
 
             <TextView
                 android:id="@+id/btn_filter_task"
@@ -75,7 +78,8 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="Công việc" />
+                android:text="Công việc"
+                android:textColor="@color/textPrimary" />
 
             <TextView
                 android:id="@+id/btn_filter_todo"
@@ -83,7 +87,8 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="Việc" />
+                android:text="Việc"
+                android:textColor="@color/textPrimary" />
         </LinearLayout>
     </FrameLayout>
 
@@ -100,7 +105,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="Công việc ngày:" />
+        android:text="Công việc ngày:"
+        android:textColor="@color/textPrimary" />
 
     <!-- TASK + TODO -->
     <androidx.core.widget.NestedScrollView

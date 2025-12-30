@@ -1,10 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<EditText xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/edt_paragraph"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="12dp"
-    android:background="@android:color/transparent"
-    android:hint="Nhập nội dung..."
-    android:maxLines="10"
-    android:textSize="16sp"/>
+    android:gravity="center_vertical">
+
+    <EditText
+        android:id="@+id/edt_paragraph"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:padding="12dp"
+        android:background="@android:color/transparent"
+        android:hint="Nhập nội dung..."
+        android:maxLines="10"
+        android:textSize="16sp"/>
+
+    <TextView
+        android:id="@+id/btn_more"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="⋮"
+        android:textSize="20sp"
+        android:padding="8dp"
+        android:clickable="true"
+        android:focusable="true" />
+</LinearLayout>

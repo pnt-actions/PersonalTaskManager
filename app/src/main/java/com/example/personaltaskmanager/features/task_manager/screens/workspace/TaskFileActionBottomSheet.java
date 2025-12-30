@@ -26,6 +26,7 @@ public class TaskFileActionBottomSheet extends BottomSheetDialogFragment {
     public interface Listener {
         void onDelete(NotionBlock block);
         void onDuplicate(NotionBlock block);
+        void onMove(NotionBlock block);
     }
 
     private NotionBlock block;
@@ -48,25 +49,59 @@ public class TaskFileActionBottomSheet extends BottomSheetDialogFragment {
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
 
-        v.<TextView>findViewById(R.id.btn_action_view).setOnClickListener(view -> {
-            try {
-                Intent i = new Intent(Intent.ACTION_VIEW);
-                i.setDataAndType(Uri.parse(block.fileUri), "*/*");
-                i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                startActivity(i);
-            } catch (Exception e) {
-                Toast.makeText(getContext(), "Cannot open file", Toast.LENGTH_SHORT).show();
-            }
-            dismiss();
-        });
+        // Cập nhật title theo loại block
+        TextView tvTitle = v.findViewById(R.id.tv_action_title);
+        String title = "Block actions";
+        switch (block.type) {
+            case FILE:
+                title = "File actions";
+                break;
+            case PARAGRAPH:
+                title = "Paragraph actions";
+                break;
+            case TODO:
+                title = "Todo actions";
+                break;
+            case BULLET:
+                title = "Bullet actions";
+                break;
+            case DIVIDER:
+                title = "Divider actions";
+                break;
+        }
+        tvTitle.setText(title);
 
-        v.<TextView>findViewById(R.id.btn_action_copy).setOnClickListener(view -> {
-            ClipboardManager cm =
-                    (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
-            cm.setPrimaryClip(ClipData.newPlainText("file", block.fileUri));
-            Toast.makeText(getContext(), "Copied", Toast.LENGTH_SHORT).show();
-            dismiss();
-        });
+        // Chỉ hiện View và Copy link cho FILE block
+        View btnView = v.findViewById(R.id.btn_action_view);
+        View btnCopy = v.findViewById(R.id.btn_action_copy);
+        
+        if (block.type == NotionBlock.Type.FILE) {
+            btnView.setVisibility(View.VISIBLE);
+            btnCopy.setVisibility(View.VISIBLE);
+            
+            btnView.setOnClickListener(view -> {
+                try {
+                    Intent i = new Intent(Intent.ACTION_VIEW);
+                    i.setDataAndType(Uri.parse(block.fileUri), "*/*");
+                    i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    startActivity(i);
+                } catch (Exception e) {
+                    Toast.makeText(getContext(), "Cannot open file", Toast.LENGTH_SHORT).show();
+                }
+                dismiss();
+            });
+
+            btnCopy.setOnClickListener(view -> {
+                ClipboardManager cm =
+                        (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                cm.setPrimaryClip(ClipData.newPlainText("file", block.fileUri));
+                Toast.makeText(getContext(), "Copied", Toast.LENGTH_SHORT).show();
+                dismiss();
+            });
+        } else {
+            btnView.setVisibility(View.GONE);
+            btnCopy.setVisibility(View.GONE);
+        }
 
         v.<TextView>findViewById(R.id.btn_action_duplicate).setOnClickListener(view -> {
             if (listener != null) listener.onDuplicate(block);
@@ -74,7 +109,7 @@ public class TaskFileActionBottomSheet extends BottomSheetDialogFragment {
         });
 
         v.<TextView>findViewById(R.id.btn_action_move).setOnClickListener(view -> {
-            Toast.makeText(getContext(), "Move feature is not implemented", Toast.LENGTH_SHORT).show();
+            if (listener != null) listener.onMove(block);
             dismiss();
         });
 

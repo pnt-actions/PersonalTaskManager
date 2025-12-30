@@ -7,8 +7,13 @@
         <item name="colorPrimaryVariant">@color/colorPrimaryDark</item>
         <item name="colorOnPrimary">@android:color/white</item>
 
+        <!-- Status bar trắng, icon tối (giống create task) -->
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">@color/white</item>
+
         <!-- Nền chung -->
-        <item name="android:windowBackground">@color/cardBackground</item>
+        <item name="android:windowBackground">@color/white</item>
+        <item name="android:colorBackground">@color/white</item>
     </style>
 
 </resources>

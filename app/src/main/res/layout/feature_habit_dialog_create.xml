@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true"
+    android:background="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@color/white">
+
+        <!-- Tên thói quen -->
+        <EditText
+            android:id="@+id/edt_habit_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Tên thói quen *"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Mô tả -->
+        <EditText
+            android:id="@+id/edt_habit_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Mô tả (tùy chọn)"
+            android:textSize="14sp"
+            android:padding="12dp"
+            android:minLines="2"
+            android:maxLines="4"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Loại target -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Loại thời gian:"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/textPrimary"
+            android:layout_marginBottom="8dp" />
+
+        <RadioGroup
+            android:id="@+id/rg_target_type"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="12dp">
+
+            <RadioButton
+                android:id="@+id/rb_fixed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Từ ngày đến ngày"
+                android:checked="true" />
+
+            <RadioButton
+                android:id="@+id/rb_period"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Theo khoảng thời gian (7/15/30 ngày, 1-12 tháng)" />
+        </RadioGroup>
+
+        <!-- Từ ngày đến ngày (Fixed) -->
+        <LinearLayout
+            android:id="@+id/ll_fixed_dates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Từ ngày:"
+                android:textSize="14sp"
+                android:textColor="@color/textPrimary"
+                android:layout_marginBottom="4dp" />
+
+            <EditText
+                android:id="@+id/edt_start_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Chọn ngày bắt đầu"
+                android:textColor="@color/textPrimary"
+                android:textColorHint="@color/textSecondary"
+                android:focusable="false"
+                android:clickable="true"
+                android:padding="12dp"
+                android:background="@android:drawable/editbox_background_normal"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Đến ngày:"
+                android:textSize="14sp"
+                android:textColor="@color/textPrimary"
+                android:layout_marginBottom="4dp" />
+
+            <EditText
+                android:id="@+id/edt_end_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Chọn ngày kết thúc"
+                android:textColor="@color/textPrimary"
+                android:textColorHint="@color/textSecondary"
+                android:focusable="false"
+                android:clickable="true"
+                android:padding="12dp"
+                android:background="@android:drawable/editbox_background_normal" />
+        </LinearLayout>
+
+        <!-- Khoảng thời gian (Period) -->
+        <LinearLayout
+            android:id="@+id/ll_period"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chọn khoảng thời gian:"
+                android:textSize="14sp"
+                android:textColor="@color/textPrimary"
+                android:layout_marginBottom="8dp" />
+
+            <Spinner
+                android:id="@+id/spinner_period"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="12dp" />
+        </LinearLayout>
+
+        <!-- Số phút mỗi ngày -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Số phút cần làm mỗi ngày:"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/textPrimary"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/edt_duration_minutes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Ví dụ: 30 phút"
+            android:textColor="@color/textPrimary"
+            android:textColorHint="@color/textSecondary"
+            android:inputType="number"
+            android:padding="12dp"
+            android:background="@android:drawable/editbox_background_normal"
+            android:layout_marginBottom="12dp" />
+
+    </LinearLayout>
+</ScrollView>
+

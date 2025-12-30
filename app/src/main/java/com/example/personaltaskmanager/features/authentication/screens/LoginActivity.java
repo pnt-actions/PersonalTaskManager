@@ -168,11 +168,11 @@ public class LoginActivity extends AppCompatActivity {
     private void setupLoginActions() {
 
         btnLogin.setOnClickListener(v -> {
-            // ... (Logic giữ nguyên)
-            String username = etUsername.getText().toString().trim();
+            // Lấy email và password (Firebase dùng email để đăng nhập)
+            String email = etUsername.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
 
-            if (username.isEmpty()) {
+            if (email.isEmpty()) {
                 etUsername.setError("Không được bỏ trống");
                 return;
             }
@@ -181,27 +181,40 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            User user = repo.login(username, password);
+            // Disable button để tránh click nhiều lần
+            btnLogin.setEnabled(false);
+            btnLogin.setText("Đang đăng nhập...");
 
-            if (user == null) {
-                Toast.makeText(this,
-                        "Sai tài khoản hoặc mật khẩu!", Toast.LENGTH_SHORT).show();
-                return;
-            }
+            repo.login(email, password, new AuthRepository.AuthCallback() {
+                @Override
+                public void onSuccess(User user) {
+                    runOnUiThread(() -> {
+                        btnLogin.setEnabled(true);
+                        btnLogin.setText("Đăng nhập");
+                        Toast.makeText(LoginActivity.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
 
-            Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(LoginActivity.this, NavigationActivity.class);
+                        intent.putExtra("role", user.role);
+                        startActivity(intent);
+                        finish();
+                    });
+                }
 
-            Intent intent = new Intent(this, NavigationActivity.class);
-            intent.putExtra("role", user.role);
-            startActivity(intent);
-            finish();
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() -> {
+                        btnLogin.setEnabled(true);
+                        btnLogin.setText("Đăng nhập");
+                        Toast.makeText(LoginActivity.this, error, Toast.LENGTH_SHORT).show();
+                    });
+                }
+            });
         });
     }
 
     private void setupRegisterActions() {
 
         btnRegister.setOnClickListener(v -> {
-            // ... (Logic giữ nguyên)
             String username = etRegUser.getText().toString().trim();
             String email = etRegEmail.getText().toString().trim();
             String pass = etRegPass.getText().toString().trim();
@@ -219,24 +232,42 @@ public class LoginActivity extends AppCompatActivity {
                 etRegPass.setError("Không được bỏ trống");
                 return;
             }
+            if (pass.length() < 6) {
+                etRegPass.setError("Mật khẩu phải có ít nhất 6 ký tự");
+                return;
+            }
             if (!pass.equals(confirm)) {
                 etRegConfirm.setError("Mật khẩu xác nhận không trùng");
                 return;
             }
 
-            boolean ok = repo.register(new User(username, email, pass));
+            // Disable button để tránh click nhiều lần
+            btnRegister.setEnabled(false);
+            btnRegister.setText("Đang đăng ký...");
 
-            if (!ok) {
-                Toast.makeText(this,
-                        "Tên người dùng đã tồn tại!", Toast.LENGTH_SHORT).show();
-                return;
-            }
+            repo.register(username, email, pass, new AuthRepository.AuthCallback() {
+                @Override
+                public void onSuccess(User user) {
+                    runOnUiThread(() -> {
+                        btnRegister.setEnabled(true);
+                        btnRegister.setText("Đăng ký");
+                        Toast.makeText(LoginActivity.this, "Tạo tài khoản thành công!", Toast.LENGTH_SHORT).show();
 
-            Toast.makeText(this, "Tạo tài khoản thành công!", Toast.LENGTH_SHORT).show();
+                        // AUTO SWITCH về LOGIN sau khi đăng ký thành công
+                        switchFormWithAnimation(0);
+                        animateTab(true);
+                    });
+                }
 
-            // AUTO SWITCH về LOGIN sau khi đăng ký thành công
-            switchFormWithAnimation(0); // Dùng hàm mới để chuyển về form Login (0)
-            animateTab(true);
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() -> {
+                        btnRegister.setEnabled(true);
+                        btnRegister.setText("Đăng ký");
+                        Toast.makeText(LoginActivity.this, error, Toast.LENGTH_SHORT).show();
+                    });
+                }
+            });
         });
     }
 }

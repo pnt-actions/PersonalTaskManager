@@ -45,6 +45,10 @@ class TaskViewModel(app: Application) : AndroidViewModel(app) {
         repo.addTask(t)
     }
 
+    fun addTask(task: Task) {
+        repo.addTask(task)
+    }
+
     fun updateTask(task: Task) {
         repo.updateTask(task)
     }
@@ -69,8 +73,59 @@ class TaskViewModel(app: Application) : AndroidViewModel(app) {
         return repo.getTaskById(taskId)
     }
 
+    fun getTaskByUuid(uuid: String): LiveData<Task> {
+        return repo.getTaskByUuid(uuid)
+    }
+
     fun toggleCompleted(task: Task, done: Boolean) {
         task.isCompleted = done
         repo.updateTask(task)
+    }
+
+    // ===== FILTER & SEARCH =====
+    fun getTasksByPriority(priority: String): LiveData<List<Task>> {
+        return repo.getTasksByPriority(priority)
+    }
+
+    fun getSubtasks(parentTaskId: Int): LiveData<List<Task>> {
+        return repo.getSubtasks(parentTaskId)
+    }
+
+    fun searchTasks(query: String): LiveData<List<Task>> {
+        return repo.searchTasks(query)
+    }
+
+    fun getTasksByTag(tag: String): LiveData<List<Task>> {
+        return repo.getTasksByTag(tag)
+    }
+
+    fun getTasksFiltered(priority: String?, isCompleted: Boolean?, tag: String?, 
+                         startDate: Long, endDate: Long, sortBy: String): LiveData<List<Task>> {
+        return repo.getTasksFiltered(priority, isCompleted, tag, startDate, endDate, sortBy)
+    }
+
+    // ===== STATISTICS =====
+    fun getCompletedTasksCount(): LiveData<Int> {
+        return repo.getCompletedTasksCount()
+    }
+
+    fun getPendingTasksCount(): LiveData<Int> {
+        return repo.getPendingTasksCount()
+    }
+
+    fun getOverdueTasksCount(): LiveData<Int> {
+        return repo.getOverdueTasksCount()
+    }
+
+    fun getCompletedTasksCountByDate(startDate: Long, endDate: Long): LiveData<Int> {
+        return repo.getCompletedTasksCountByDate(startDate, endDate)
+    }
+
+    fun getCompletedTasksCountByPriority(priority: String): LiveData<Int> {
+        return repo.getCompletedTasksCountByPriority(priority)
+    }
+
+    fun getCompletedTasks(): LiveData<List<Task>> {
+        return repo.getCompletedTasks()
     }
 }

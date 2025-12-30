@@ -114,11 +114,13 @@ public class NotionBlockAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     class ParagraphHolder extends RecyclerView.ViewHolder implements Bindable {
 
         private final EditText edt;
+        private final View btnMore;
         private TextWatcher watcher;
 
         public ParagraphHolder(@NonNull View itemView) {
             super(itemView);
             edt = itemView.findViewById(R.id.edt_paragraph);
+            btnMore = itemView.findViewById(R.id.btn_more);
         }
 
         @Override
@@ -130,6 +132,13 @@ public class NotionBlockAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
             watcher = new SimpleWatcher(text -> block.text = text);
             edt.addTextChangedListener(watcher);
+
+            // menu button
+            btnMore.setOnClickListener(v -> {
+                if (menuListener != null) {
+                    menuListener.onMenuClick(block, getAdapterPosition(), v);
+                }
+            });
         }
     }
 
@@ -141,6 +150,7 @@ public class NotionBlockAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         private final EditText edt;
         private final CheckBox checkbox;
         private final TextView tvDeadline;
+        private final View btnMore;
         private TextWatcher watcher;
 
         public TodoHolder(@NonNull View itemView) {
@@ -149,6 +159,7 @@ public class NotionBlockAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             edt = itemView.findViewById(R.id.edt_todo);
             checkbox = itemView.findViewById(R.id.check_todo);
             tvDeadline = itemView.findViewById(R.id.tv_todo_deadline);
+            btnMore = itemView.findViewById(R.id.btn_more);
         }
 
         @Override
@@ -194,6 +205,13 @@ public class NotionBlockAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                         c.get(java.util.Calendar.DAY_OF_MONTH)
                 ).show();
             });
+
+            // menu button
+            btnMore.setOnClickListener(v -> {
+                if (menuListener != null) {
+                    menuListener.onMenuClick(block, getAdapterPosition(), v);
+                }
+            });
         }
     }
 
@@ -203,11 +221,13 @@ public class NotionBlockAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     class BulletHolder extends RecyclerView.ViewHolder implements Bindable {
 
         private final EditText edt;
+        private final View btnMore;
         private TextWatcher watcher;
 
         public BulletHolder(@NonNull View itemView) {
             super(itemView);
             edt = itemView.findViewById(R.id.edt_bullet);
+            btnMore = itemView.findViewById(R.id.btn_more);
         }
 
         @Override
@@ -219,6 +239,13 @@ public class NotionBlockAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
             watcher = new SimpleWatcher(text -> block.text = text);
             edt.addTextChangedListener(watcher);
+
+            // menu button
+            btnMore.setOnClickListener(v -> {
+                if (menuListener != null) {
+                    menuListener.onMenuClick(block, getAdapterPosition(), v);
+                }
+            });
         }
     }
 

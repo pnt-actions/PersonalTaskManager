@@ -5,11 +5,15 @@
     <!-- ========================================================= -->
     <!-- PERMISSIONS — tránh crash khi chọn file / mở file         -->
     <!-- ========================================================= -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <!-- Storage (Android 12 trở xuống) -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
 
     <!-- Android 13+ permissions -->
@@ -18,6 +22,7 @@
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
 
     <application
+        android:name=".PersonalTaskManagerApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -107,6 +112,14 @@
             android:theme="@style/Theme.TaskManager" />
 
         <!-- ========================================================= -->
+        <!--  HABIT TRACKER MODULE                                    -->
+        <!-- ========================================================= -->
+        <activity
+            android:name=".features.habit_tracker.screens.HabitDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.PersonalTaskManager" />
+
+        <!-- ========================================================= -->
         <!--  CALENDAR EVENTS MODULE                                  -->
         <!-- ========================================================= -->
         <!--
@@ -122,6 +135,14 @@
         <!--  ADMIN MODULE (Fragment -> không cần khai báo)           -->
         <!-- ========================================================= -->
         <!-- AdminFragment KHÔNG cần thêm ở đây                       -->
+
+        <!-- ========================================================= -->
+        <!--  PROFILE SETTINGS MODULE                                 -->
+        <!-- ========================================================= -->
+        <activity
+            android:name=".features.profile_settings.screens.ProfileSettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.PersonalTaskManager" />
 
     </application>
 

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackgroundGradientStart"
+    android:background="@color/white"
     tools:context=".features.navigation.SettingsFragment">
 
     <TextView
@@ -68,6 +68,12 @@
                     android:background="@color/gray"
                     android:layout_marginHorizontal="16dp"/>
 
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/gray"
+                        android:layout_marginHorizontal="16dp"/>
+
                     <include
                         android:id="@+id/setting_logout"
                         layout="@layout/feature_settings_item"
@@ -117,6 +123,37 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:tag="language" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dữ liệu"
+                android:textSize="14sp"
+                android:textColor="@color/textSecondary"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"/>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/cardBackground">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <include
+                        android:id="@+id/setting_export"
+                        layout="@layout/feature_settings_item"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:tag="export" />
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>

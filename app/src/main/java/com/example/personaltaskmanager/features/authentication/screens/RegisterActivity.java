@@ -80,27 +80,45 @@ public class RegisterActivity extends AppCompatActivity {
                 etPass.setError("Không được để trống");
                 return;
             }
+            if (password.length() < 6) {
+                etPass.setError("Mật khẩu phải có ít nhất 6 ký tự");
+                return;
+            }
             if (!password.equals(confirm)) {
                 etConfirm.setError("Mật khẩu xác nhận không trùng!");
                 return;
             }
 
-            boolean ok = repo.register(new User(username, email, password));
+            // Disable button để tránh click nhiều lần
+            btnRegister.setEnabled(false);
+            btnRegister.setText("Đang đăng ký...");
 
-            if (!ok) {
-                Toast.makeText(this,
-                        "Tên tài khoản đã tồn tại!", Toast.LENGTH_SHORT).show();
-                return;
-            }
+            repo.register(username, email, password, new AuthRepository.AuthCallback() {
+                @Override
+                public void onSuccess(User user) {
+                    runOnUiThread(() -> {
+                        btnRegister.setEnabled(true);
+                        btnRegister.setText("Đăng ký");
+                        Toast.makeText(RegisterActivity.this,
+                                "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
 
-            Toast.makeText(this,
-                    "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
+                        finish();
+                        overridePendingTransition(
+                                R.anim.slide_in_left,
+                                R.anim.slide_out_right
+                        );
+                    });
+                }
 
-            finish();
-            overridePendingTransition(
-                    R.anim.slide_in_left,
-                    R.anim.slide_out_right
-            );
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() -> {
+                        btnRegister.setEnabled(true);
+                        btnRegister.setText("Đăng ký");
+                        Toast.makeText(RegisterActivity.this, error, Toast.LENGTH_SHORT).show();
+                    });
+                }
+            });
         });
 
         // Nhấn "Đăng nhập" → quay lại với animation

@@ -2,12 +2,17 @@ package com.example.personaltaskmanager.features.task_manager.screens.workspace;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.provider.OpenableColumns;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowInsetsController;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -41,6 +46,7 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
     private ImageButton btnBack;
 
     private TextView tvTaskTitle, tvTaskDeadline;
+    private ImageView imgTaskIcon;
 
     private final List<NotionBlock> blocks = new ArrayList<>();
     private NotionBlockAdapter adapter;
@@ -48,6 +54,7 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
     private TaskViewModel vm;
     private Task task;
     private int taskId;
+    private String taskUuid;
 
     private static final int REQ_PICK_FILE = 2001;
     private static final int REQ_EDIT_TASK = 3001;
@@ -57,8 +64,15 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
         super.onCreate(savedInstanceState);
         setContentView(R.layout.feature_task_manager_workspace);
 
+        setLightStatusBar();
+
         vm = new ViewModelProvider(this).get(TaskViewModel.class);
         taskId = getIntent().getIntExtra("task_id", -1);
+        taskUuid = getIntent().getStringExtra("task_uuid");
+
+        // Reset dữ liệu
+        task = null;
+        blocks.clear();
 
         initViews();
         initRecycler();
@@ -66,17 +80,73 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
         setupActions();
     }
 
+    /** Light status bar (giống create task) */
+    private void setLightStatusBar() {
+        Window window = getWindow();
+        window.setStatusBarColor(Color.WHITE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowInsetsController controller = window.getInsetsController();
+            if (controller != null) {
+                controller.setSystemBarsAppearance(
+                    WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+                    WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                );
+            }
+        } else {
+            window.getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            );
+        }
+    }
+
     /**
      * Observe Task từ ViewModel
      * Khi Task thay đổi → load lại thông tin + block
      */
     private void observeTask() {
-        vm.getTaskById(taskId).observe(this, t -> {
-            if (t == null) return;
-            task = t;
+        // Ưu tiên dùng UUID nếu có, nếu không thì dùng ID
+        androidx.lifecycle.LiveData<Task> taskLiveData;
+        if (taskUuid != null && !taskUuid.isEmpty()) {
+            taskLiveData = vm.getTaskByUuid(taskUuid);
+        } else if (taskId != -1) {
+            taskLiveData = vm.getTaskById(taskId);
+        } else {
+            finish();
+            return;
+        }
+
+        taskLiveData.observe(this, t -> {
+            // Verify bằng cả ID và UUID để đảm bảo chính xác
+            boolean isValid = false;
+            if (t != null) {
+                if (taskUuid != null && !taskUuid.isEmpty()) {
+                    isValid = taskUuid.equals(t.getUuid());
+                } else {
+                    isValid = t.getId() == taskId;
+                }
+            }
+
+            if (isValid) {
+                task = t;
+                taskId = t.getId(); // Update taskId từ task loaded
+                applyTaskInfo();
+                loadBlocks();
+            } else if (t == null) {
+                // Task không tồn tại
+                finish();
+            }
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Đảm bảo update lại khi vào lại activity
+        if (task != null && task.getId() == taskId) {
             applyTaskInfo();
             loadBlocks();
-        });
+        }
     }
 
     private void initViews() {
@@ -92,6 +162,7 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
 
         tvTaskTitle = findViewById(R.id.tv_task_title);
         tvTaskDeadline = findViewById(R.id.tv_task_deadline);
+        imgTaskIcon = findViewById(R.id.img_task_icon);
 
         findViewById(R.id.card_top_bar).setOnClickListener(v -> openTaskDetail());
     }
@@ -101,22 +172,152 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
         adapter = new NotionBlockAdapter(blocks);
         rvWorkspace.setAdapter(adapter);
 
+        // Setup menu listener - show AI menu for text blocks, file menu for file blocks
+        adapter.setFileMenuListener((block, position, anchor) -> {
+            // Show AI menu for text blocks (PARAGRAPH, TODO, BULLET)
+            if (block.type == NotionBlock.Type.PARAGRAPH 
+                    || block.type == NotionBlock.Type.TODO 
+                    || block.type == NotionBlock.Type.BULLET) {
+                
+                AIActionBottomSheet aiSheet = new AIActionBottomSheet(block, new AIActionBottomSheet.Listener() {
+                    @Override
+                    public void onTextUpdated(NotionBlock b, String newText) {
+                        b.text = newText;
+                        adapter.notifyItemChanged(position);
+                        save();
+                    }
+
+                    @Override
+                    public void onDelete(NotionBlock b) {
+                        blocks.remove(b);
+                        adapter.notifyItemRemoved(position);
+                        save();
+                    }
+
+                    @Override
+                    public void onDuplicate(NotionBlock b) {
+                        NotionBlock copy = new NotionBlock(
+                                java.util.UUID.randomUUID().toString(),
+                                b.type,
+                                b.text,
+                                b.isChecked
+                        );
+                        copy.fileUri = b.fileUri;
+                        copy.fileName = b.fileName;
+                        copy.deadline = b.deadline;
+                        blocks.add(position + 1, copy);
+                        adapter.notifyItemInserted(position + 1);
+                        save();
+                    }
+
+                    @Override
+                    public void onMove(NotionBlock b) {
+                        MoveBlockDialog dialog = new MoveBlockDialog(b, taskId, vm, targetTaskId -> {
+                            moveBlockToTask(b, targetTaskId);
+                        });
+                        dialog.show(getSupportFragmentManager(), "MoveBlockDialog");
+                    }
+                });
+                aiSheet.show(getSupportFragmentManager(), "AIActions");
+                
+            } else {
+                // Show file menu for FILE blocks
+                TaskFileActionBottomSheet sheet = new TaskFileActionBottomSheet(block, new TaskFileActionBottomSheet.Listener() {
+                    @Override
+                    public void onDelete(NotionBlock b) {
+                        blocks.remove(b);
+                        adapter.notifyItemRemoved(position);
+                        save();
+                    }
+
+                    @Override
+                    public void onDuplicate(NotionBlock b) {
+                        NotionBlock copy = new NotionBlock(
+                                java.util.UUID.randomUUID().toString(),
+                                b.type,
+                                b.text,
+                                b.isChecked
+                        );
+                        copy.fileUri = b.fileUri;
+                        copy.fileName = b.fileName;
+                        copy.deadline = b.deadline;
+                        blocks.add(position + 1, copy);
+                        adapter.notifyItemInserted(position + 1);
+                        save();
+                    }
+
+                    @Override
+                    public void onMove(NotionBlock b) {
+                        MoveBlockDialog dialog = new MoveBlockDialog(b, taskId, vm, targetTaskId -> {
+                            moveBlockToTask(b, targetTaskId);
+                        });
+                        dialog.show(getSupportFragmentManager(), "MoveBlockDialog");
+                    }
+                });
+                sheet.show(getSupportFragmentManager(), "FileActions");
+            }
+        });
+
         Vibrator vib = (Vibrator) getSystemService(VIBRATOR_SERVICE);
         ItemTouchHelper helper =
                 new ItemTouchHelper(new BlockDragCallback(blocks, adapter, vib, this));
         helper.attachToRecyclerView(rvWorkspace);
     }
 
+    private void moveBlockToTask(NotionBlock block, int targetTaskId) {
+        // Xóa block khỏi task hiện tại
+        blocks.remove(block);
+        adapter.notifyDataSetChanged();
+        save();
+
+        // Thêm block vào task đích - chạy trong background thread để tránh vòng lặp
+        com.example.personaltaskmanager.features.task_manager.data.local.db.AppDatabase.databaseWriteExecutor.execute(() -> {
+            try {
+                com.example.personaltaskmanager.features.task_manager.data.repository.TaskRepository repo = 
+                    new com.example.personaltaskmanager.features.task_manager.data.repository.TaskRepository(this);
+                
+                Task targetTask = repo.getTaskByIdSync(targetTaskId);
+                if (targetTask != null) {
+                    List<NotionBlock> targetBlocks = NotionBlockParser.fromJson(targetTask.getNotesJson());
+                    targetBlocks.add(block);
+                    targetTask.setNotesJson(NotionBlockParser.toJson(targetBlocks));
+                    repo.updateTask(targetTask);
+                    
+                    // Hiển thị toast trên main thread
+                    runOnUiThread(() -> {
+                        android.widget.Toast.makeText(this, "Đã di chuyển block", android.widget.Toast.LENGTH_SHORT).show();
+                    });
+                }
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    android.widget.Toast.makeText(this, "Lỗi khi di chuyển block", android.widget.Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
+
     private void applyTaskInfo() {
         tvTaskTitle.setText(task.getTitle());
+
         long dl = task.getDeadline();
         if (dl > 0) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            SimpleDateFormat sdf =
+                    new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
             tvTaskDeadline.setText(sdf.format(dl));
         } else {
             tvTaskDeadline.setText("No deadline");
         }
+
+        // ===== IMAGE (ĐỒNG BỘ VỚI TASK ADAPTER) =====
+        if (task.getImageUri() != null && !task.getImageUri().isEmpty()) {
+            imgTaskIcon.setImageURI(Uri.parse(task.getImageUri()));
+        } else {
+            imgTaskIcon.setImageResource(
+                    R.drawable.feature_task_manager_ic_image_placeholder
+            );
+        }
     }
+
 
     private void loadBlocks() {
         blocks.clear();
@@ -193,6 +394,9 @@ public class TaskWorkspaceActivity extends AppCompatActivity implements MoveHand
     private void openTaskDetail() {
         Intent i = new Intent(this, TaskDetailActivity.class);
         i.putExtra("task_id", taskId);
+        if (task != null && task.getUuid() != null) {
+            i.putExtra("task_uuid", task.getUuid());
+        }
         startActivityForResult(i, REQ_EDIT_TASK);
     }
 
